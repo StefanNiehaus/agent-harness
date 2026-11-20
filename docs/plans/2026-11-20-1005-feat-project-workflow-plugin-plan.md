@@ -18,7 +18,7 @@ execution: code
 - **Authority:** The Product Contract's R-IDs decide product behavior, the KTDs decide mechanism, and a unit overrides neither.
 - **Execution profile:** One change set in `agent-harness`, landed as local commits because the repo has no remote. U8 adds one config file to `stoep` on its own branch, committed and not pushed.
 - **Stop conditions:** Stop when a session-settled decision cannot work as written, or when a `stoep` thread turns out to be live (U8).
-- **Who finishes:** The owner creates the GitHub remote, publishes, picks a license, installs the skills on their machine, and scopes the employer's plugin away from personal repos.
+- **Who finishes:** The owner creates the GitHub remote, publishes under Apache-2.0, installs the skills on their machine, and scopes the employer's plugin away from personal repos.
 - **Open blockers:** None. The repo exists locally (`git init`, no commits, no remote).
 - **Product Contract preservation:** changed: one Dependencies assumption corrected (`~/.agents/skills/` does not exist on the owner's machine). Requirements, Key Decisions, and Acceptance Examples are unchanged.
 
@@ -138,12 +138,6 @@ flowchart TB
 - GitHub sub-issues are available on the owner's repos for the children op. If they are not, the GitHub sheet falls back to a task-list or label convention, which is for planning to choose.
 - On the owner's machine, the employer's project-workflow plugin is still enabled user-globally (`~/.claude/settings.json`). Until it is scoped to work repos, its hook injects employer rules into personal Claude sessions and its `pw-*` skills show beside the personal ones. Scoping it is an owner machine step, not repo content.
 - `~/.agents/skills/` is the cross-agent skill directory: Codex and Gemini CLI both document reading it. It does not exist on the owner's machine yet, so the install script creates it.
-
-### Outstanding Questions
-
-**Deferred, for the owner**
-
-- Which license the public repo carries. It gates publishing, not this work, and no `LICENSE` file is added until the owner picks one.
 
 ### Sources / Research
 
@@ -428,7 +422,7 @@ AE3 and AE5 are verified by reading, as their units state. A live land against a
 - `stoep`'s `GH-3-foundation` header points at the new rules doc, and its config commit sits on a local branch.
 - The plan doc is committed with the work.
 - No abandoned drafts, unused fixtures, or scratch files remain in the diff.
-- The final report lists the owner's remaining steps: create the remote and publish, choose a license, run `bin/install` for their agents, scope the employer's plugin away from personal repos, and merge the `stoep` branch and then delete the local config copy there.
+- The final report lists the owner's remaining steps: create the remote and publish, run `bin/install` for their agents, scope the employer's plugin away from personal repos, and merge the `stoep` branch and then delete the local config copy there.
 
 ### Considered and not built
 

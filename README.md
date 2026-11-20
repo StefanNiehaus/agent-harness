@@ -14,7 +14,7 @@ and a Claude Code plugin at once, built from one folder. Nothing installs unless
 Clone the repo somewhere it can stay, because the symlink install points into the clone:
 
 ```bash
-git clone https://github.com/<owner>/agent-harness.git
+git clone https://github.com/StefanNiehaus/agent-harness.git
 cd agent-harness
 ```
 
@@ -43,7 +43,7 @@ Pick **one** of these. Using both gives you two copies of every skill.
 - **Marketplace**:
 
   ```text
-  /plugin marketplace add <owner>/agent-harness
+  /plugin marketplace add StefanNiehaus/agent-harness
   /plugin install project-workflow@agent-harness
   ```
 
@@ -55,6 +55,10 @@ cache, which is replaced when the plugin updates.
 
 Each plugin's README says how to switch it on for a repo. `project-workflow` needs a small config file per
 repo: see [its README](plugins/project-workflow/README.md).
+
+## License
+
+[Apache License 2.0](LICENSE).
 
 ## Contributing
 
