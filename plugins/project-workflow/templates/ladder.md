@@ -1,7 +1,7 @@
 # <What the fixes are, e.g. "Code bugs on the tracking path"> — <NAME> ladder (<root>)
 
 <!--
-TEMPLATE — copy to `scratch/<root>-<slug>/ladders/<NAME>.md` when the first small fix that fits no deliverable
+TEMPLATE — copy to `scratch/<root>-<short-name>/ladders/<NAME>.md` when the first small fix that fits no deliverable
 appears; add its row to the tracker's Ladders table and name one umbrella ticket. Replace every <placeholder> and
 delete these guidance comments. NAME is a short handle (`CB`, `DOCS`); steps are `<NAME>1…n`.
 -->

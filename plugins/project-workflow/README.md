@@ -3,12 +3,12 @@
 <!-- tracker-specific -->
 
 A workflow for efforts too big for one plan and one branch: several deliverables, several agent threads, one
-root ticket. Each project lives in a gitignored `scratch/<root>-<slug>/` folder whose `tracker.md` routes the
+root ticket. Each project lives in a gitignored `scratch/<root>-<short-name>/` folder whose `tracker.md` routes the
 work, and four skills keep it honest against your ticket tracker.
 
 | Skill | What it does |
 |---|---|
-| `/pw-open <root> [<slug>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
+| `/pw-open <root> [<short-name>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
 | `/pw-check <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
 | `/pw-land <project> <task-id>` | Lands a merged deliverable: flips its row, walks its ticket, cleans up its worktree. `/pw-land <project> close` closes and archives the project. |
 | `/pw-page <project> <id> <topic>` | Writes a self-contained HTML review page for the project owner. |

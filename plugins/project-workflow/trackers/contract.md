@@ -17,7 +17,7 @@ Each op heading below is fixed: a sheet repeats it exactly.
 ## `key-format`
 
 States three things: how a ticket key is written in prose and in tables; how the **root key** is written in the
-project folder name (`scratch/<root>-<slug>/`), which must be filesystem-safe and stable; and how a PR body
+project folder name (`scratch/<root>-<short-name>/`), which must be filesystem-safe and stable; and how a PR body
 references a ticket — one form that **only references** it and one form that **closes it on merge**. A skill
 uses the closing form only when the config says `done: agent`.
 

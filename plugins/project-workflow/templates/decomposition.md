@@ -1,7 +1,7 @@
 # <Root> — <Project name> — Decomposition (scope of record)
 
 <!--
-TEMPLATE — `/pw-open` copies this to `scratch/<root>-<slug>/decomposition.md`. Replace every <placeholder>
+TEMPLATE — `/pw-open` copies this to `scratch/<root>-<short-name>/decomposition.md`. Replace every <placeholder>
 and delete these guidance comments. The tracker routes; this file defines what the project will and won't do.
 -->
 

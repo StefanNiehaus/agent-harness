@@ -1,7 +1,7 @@
 # <Project name> — Project Tracker (<root, e.g. GH-12 or epic ABC-123>)
 
 <!--
-TEMPLATE — `/pw-open` copies this to `scratch/<root>-<slug>/tracker.md` in the repo's main checkout.
+TEMPLATE — `/pw-open` copies this to `scratch/<root>-<short-name>/tracker.md` in the repo's main checkout.
 Replace every <placeholder> and delete these guidance comments. A section exists only once something
 occupies it; the commented shapes below are how to add one later. Keep the Shape line: `/pw-check` reads it.
 -->

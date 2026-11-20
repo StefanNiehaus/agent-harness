@@ -1,11 +1,11 @@
 ---
 name: pw-open
-description: Use when the user wants to start a project — an effort of two or more deliverables or agent threads hung off one root ticket — phrases like "/pw-open GH-12", "/pw-open ABC-123", "open a project for this epic", "start a tracker for issue 12", or "set up the project folder and seed it with these tickets". Reads the root ticket (read-only) from the repo's configured ticket tracker, creates `scratch/<root>-<slug>/` in the repo's main checkout with `tracker.md` and `decomposition.md` from the plugin's templates, and seeds the decomposition Queue with any existing tickets the user names, unnumbered. Refuses when the repo has not opted in or the project folder already exists; never creates, edits or moves a ticket.
+description: Use when the user wants to start a project — an effort of two or more deliverables or agent threads hung off one root ticket — phrases like "/pw-open GH-12", "/pw-open ABC-123", "open a project for this epic", "start a tracker for issue 12", or "set up the project folder and seed it with these tickets". Reads the root ticket (read-only) from the repo's configured ticket tracker, creates `scratch/<root>-<short-name>/` in the repo's main checkout with `tracker.md` and `decomposition.md` from the plugin's templates, and seeds the decomposition Queue with any existing tickets the user names, unnumbered. Refuses when the repo has not opted in or the project folder already exists; never creates, edits or moves a ticket.
 ---
 
 # /pw-open — create a project folder for a root ticket
 
-`/pw-open <root> [<slug>] [<ticket>…]`. This skill writes two files and nothing else: no ticket writes, no worktree, no commit.
+`/pw-open <root> [<short-name>] [<ticket>…]`. This skill writes two files and nothing else: no ticket writes, no worktree, no commit.
 
 ## Start (every run)
 
@@ -19,7 +19,7 @@ description: Use when the user wants to start a project — an effort of two or 
 1. **Validate everything before writing anything.**
    - `read-root` for the root. Not found or no access → stop; no directory is created.
    - `read-ticket` for each named ticket. Any not found → stop and name it; nothing is created.
-   - Root key for the folder: as the sheet's `key-format` writes it, never lower-cased. Slug: the argument if given, else 2–4 kebab-case words from the root's title. Directory: `$main/scratch/<ROOT>-<slug>/`.
+   - Root key for the folder: as the sheet's `key-format` writes it, never lower-cased. Short name: the argument if given, else 2–4 kebab-case words from the root's title. Directory: `$main/scratch/<ROOT>-<short-name>/`.
    - **Refuse** when that directory exists, or when any `$main/scratch/<ROOT>-*/` exists (the root already has a project; match the key case-insensitively, since older folders may be lower-case): name it and point at `/pw-check`. Never overwrite.
    - `git -C "$main" check-ignore -q scratch/x` must succeed; if `scratch/` is not gitignored, stop and tell the user (the tracker file must never be committed).
 
@@ -42,4 +42,4 @@ description: Use when the user wants to start a project — an effort of two or 
 
 ## Learnings
 
-When an open misreads the root, picks a bad slug or handle, or produces a tracker `/pw-check` cannot read, append one dated line to this skill's `learnings.md` in the real skill folder (`### YYYY-MM-DD` then `- Observation. Source: <path / ticket>.`). Only when the class recurs or the user flags a miss. A lesson about one tracker's behavior goes in that tracker's op sheet instead.
+When an open misreads the root, picks a bad short name or handle, or produces a tracker `/pw-check` cannot read, append one dated line to this skill's `learnings.md` in the real skill folder (`### YYYY-MM-DD` then `- Observation. Source: <path / ticket>.`). Only when the class recurs or the user flags a miss. A lesson about one tracker's behavior goes in that tracker's op sheet instead.

@@ -1,11 +1,11 @@
 ---
 name: pw-check
-description: Use when the user wants the state of a project (an effort tracked by a living `scratch/<root>-<slug>/tracker.md`) — phrases like "/pw-check", "check the <name> project", "where's the <name> project", "status of the <name> project", or "sweep the <name> project". Reads the project's tracker file FIRST, reconciles it against the live tickets in the repo's configured ticket tracker and the open PRs/branches/worktrees, then renders a plain-English deliverable table (each row says what it delivers, not just "D4"), the ladders, the Queue head, the critical path and next actions. Reads only the project-workflow/v1 shape; an old-shape tracker gets no board and a pointer to `/pw-land <project> close`. Default depth is a READ-ONLY snapshot; "sweep" adds tracker-file, ladder, archive and ticket maintenance and may write. Names a project by name, root key or tracker path; asks when ambiguous.
+description: Use when the user wants the state of a project (an effort tracked by a living `scratch/<root>-<short-name>/tracker.md`) — phrases like "/pw-check", "check the <name> project", "where's the <name> project", "status of the <name> project", or "sweep the <name> project". Reads the project's tracker file FIRST, reconciles it against the live tickets in the repo's configured ticket tracker and the open PRs/branches/worktrees, then renders a plain-English deliverable table (each row says what it delivers, not just "D4"), the ladders, the Queue head, the critical path and next actions. Reads only the project-workflow/v1 shape; an old-shape tracker gets no board and a pointer to `/pw-land <project> close`. Default depth is a READ-ONLY snapshot; "sweep" adds tracker-file, ladder, archive and ticket maintenance and may write. Names a project by name, root key or tracker path; asks when ambiguous.
 ---
 
 # /pw-check — project snapshot from the living tracker
 
-Repeat-use skill. Produces a glanceable, plain-English status of a **project** — an effort split into deliverables and tracked by a living `scratch/<root>-<slug>/tracker.md`. The tracker file is the engine: read it first, then reconcile it against the ticket tracker (status of record) and reality (open PRs, branches, worktrees) so the snapshot is true even if the file drifted.
+Repeat-use skill. Produces a glanceable, plain-English status of a **project** — an effort split into deliverables and tracked by a living `scratch/<root>-<short-name>/tracker.md`. The tracker file is the engine: read it first, then reconcile it against the ticket tracker (status of record) and reality (open PRs, branches, worktrees) so the snapshot is true even if the file drifted.
 
 The headline output is a **deliverable table where every row says what it delivers in plain English** — never just `D4`.
 
@@ -25,7 +25,7 @@ The headline output is a **deliverable table where every row says what it delive
 
 ## Resolving the project
 
-Tracker files live in the **main checkout** of a repo at `scratch/<root>-<slug>/tracker.md` — gitignored, never in a worktree. Resolve the main checkout first:
+Tracker files live in the **main checkout** of a repo at `scratch/<root>-<short-name>/tracker.md` — gitignored, never in a worktree. Resolve the main checkout first:
 
 ```bash
 main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')

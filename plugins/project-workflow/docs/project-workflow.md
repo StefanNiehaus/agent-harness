@@ -21,7 +21,7 @@ disk is the handoff, not the planning conversation — and commit the plan doc o
 
 A **project** is any effort split into 2+ deliverables or worked by 2+ agent threads. It hangs off a **root**
 (one ticket in the repo's tracker: an epic, a parent issue, or a single ticket) and lives in a gitignored
-`scratch/<root>-<slug>/` in the repo's main checkout. A **ticket** is any item in the tracker; the **tracker** is
+`scratch/<root>-<short-name>/` in the repo's main checkout. A **ticket** is any item in the tracker; the **tracker** is
 the ticket system the repo's config names; the tracker's own grouping of tickets is always written **tracker
 project**. A **deliverable** (`D1`) is the dispatch grain, with sub-deliverables `D1:B2`; a **thread** is one
 agent's stint on a deliverable or ladder step; a **recipe** is its entry and exit `/ce-*` skills written as
@@ -45,7 +45,7 @@ A config naming a tracker that has no op sheet stops the same way, naming the mi
 ## Project folder
 
 ```
-scratch/<KEY>-<slug>/        # root key exactly as the tracker's op sheet writes it (GH-12, ABC-123), then a 2-4 word kebab slug
+scratch/<KEY>-<short-name>/        # root key exactly as the tracker's op sheet writes it (GH-12, ABC-123), then a 2-4 word kebab-case short name
 ├── tracker.md               # router: board, ladders, Messages, next actions, open decisions, bridges, invariants
 ├── decomposition.md         # scope of record: end state, rules, Ledger, Queue, Not in this project, Dropped
 ├── ladders/<NAME>.md        # one named queue of small one-PR fixes under one umbrella ticket
@@ -114,7 +114,7 @@ close it. An obsolete ticket is always cancelled through the sheet's `cancel` op
 
 ## Skills
 
-- `/pw-open <root> [<slug>] [<ticket>…]` — create the project folder from the templates; seed the Queue.
+- `/pw-open <root> [<short-name>] [<ticket>…]` — create the project folder from the templates; seed the Queue.
 - `/pw-land <project> <task-id>` — land a deliverable or ladder step in hot context: compound, row flip, ticket
   walk, worktree cleanup last. `/pw-land <project> close` — close the project: ticket-or-drop table, owner
   approval, archive.
