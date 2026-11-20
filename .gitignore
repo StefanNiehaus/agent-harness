@@ -1,0 +1,4 @@
+scratch/
+.worktrees/
+.denylist.local
+.project-workflow.local.yml

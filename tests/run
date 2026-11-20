@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Run every tests/*.test.sh and report how many failed.
+set -u
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+failed=0
+ran=0
+for t in "$here"/*.test.sh; do
+  [ -e "$t" ] || continue
+  ran=$((ran + 1))
+  echo "== $(basename "$t")"
+  if ! bash "$t"; then
+    failed=$((failed + 1))
+  fi
+done
+echo
+if [ "$failed" -gt 0 ]; then
+  echo "FAILED: $failed of $ran test file(s)"
+  exit 1
+fi
+echo "OK: $ran test file(s)"
