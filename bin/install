@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Link a plugin's skill folders into agent skill directories.
+#
+#   bin/install                          list the plugins; install nothing
+#   bin/install <plugin>                 link into ~/.agents/skills
+#   bin/install <plugin> --agent claude  link into that agent's skill directory (repeatable)
+#   bin/install <plugin> --dir <path>    link into any directory (repeatable)
+#   bin/install <plugin> ... --uninstall remove the links this clone made there
+#
+# Links only: a skill resolves its plugin's rules and templates from its real path, and anything a skill
+# appends to its learnings file lands in this clone. Existing folders and foreign links are never replaced.
+set -u
+
+clone="$(cd -P "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+usage() { sed -n '2,9p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
+
+list_plugins() {
+  echo "Plugins in this repo (nothing is installed until you name one):"
+  for p in "$clone"/plugins/*/; do
+    [ -d "$p" ] && echo "  $(basename "$p")"
+  done
+}
+
+agent_dir() { # <agent name> -> skill directory, or empty when unknown
+  case "$1" in
+    claude) echo "$HOME/.claude/skills" ;;
+    codex | gemini | agents) echo "$HOME/.agents/skills" ;;
+    cursor) echo "$HOME/.cursor/skills" ;;
+    *) echo "" ;;
+  esac
+}
+
+plugin=""
+uninstall=0
+targets=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h | --help) usage; exit 0 ;;
+    --uninstall) uninstall=1 ;;
+    --agent)
+      [ $# -ge 2 ] || { echo "error: --agent needs a name" >&2; exit 2; }
+      dir=$(agent_dir "$2")
+      [ -n "$dir" ] || { echo "error: unknown agent '$2' (known: claude, codex, gemini, cursor; or use --dir <path>)" >&2; exit 2; }
+      targets+=("$dir"); shift ;;
+    --dir)
+      [ $# -ge 2 ] || { echo "error: --dir needs a path" >&2; exit 2; }
+      targets+=("$2"); shift ;;
+    -*) echo "error: unknown option '$1'" >&2; exit 2 ;;
+    *)
+      [ -z "$plugin" ] || { echo "error: one plugin per run (got '$plugin' and '$1')" >&2; exit 2; }
+      plugin=$1 ;;
+  esac
+  shift
+done
+
+if [ -z "$plugin" ]; then
+  list_plugins
+  echo
+  usage
+  exit 1
+fi
+
+skills="$clone/plugins/$plugin/skills"
+if [ ! -d "$skills" ]; then
+  echo "error: no plugin '$plugin' in this repo" >&2
+  list_plugins >&2
+  exit 1
+fi
+
+[ ${#targets[@]} -gt 0 ] || targets=("$HOME/.agents/skills")
+
+refused=0
+for target in "${targets[@]}"; do
+  [ "$uninstall" -eq 1 ] || mkdir -p "$target" || { echo "error: cannot create $target" >&2; exit 1; }
+  for src in "$skills"/*/; do
+    src=${src%/}
+    [ -f "$src/SKILL.md" ] || continue
+    link="$target/$(basename "$src")"
+    if [ -L "$link" ]; then
+      current=$(readlink "$link")
+      if [ "$current" = "$src" ]; then
+        if [ "$uninstall" -eq 1 ]; then rm "$link"; echo "removed  $link"; else echo "present  $link"; fi
+      else
+        echo "refused  $link (a link to $current, not made by this clone)"
+        refused=$((refused + 1))
+      fi
+    elif [ -e "$link" ]; then
+      echo "refused  $link (exists and is not a link)"
+      refused=$((refused + 1))
+    elif [ "$uninstall" -eq 1 ]; then
+      echo "absent   $link"
+    else
+      ln -s "$src" "$link"
+      echo "linked   $link -> $src"
+    fi
+  done
+done
+
+if [ "$refused" -gt 0 ]; then
+  echo "$refused path(s) left untouched. Move or remove them yourself, then run this again." >&2
+  exit 1
+fi
