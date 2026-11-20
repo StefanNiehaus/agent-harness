@@ -13,7 +13,7 @@ The headline output is a **deliverable table where every row says what it delive
 
 1. **Find the plugin.** Resolve the real path of the folder that holds this `SKILL.md`, following symlinks (`cd -P "<skill folder>" && pwd -P`). The plugin root is two levels above that real path. Resolve first: shortening `..` against a symlinked path lands in the wrong place.
 2. **Read the rules** at `../../docs/project-workflow.md` and this skill's `learnings.md`.
-3. **Resolve the project** (below), then **read the repo config** from the main checkout that holds it: `.project-workflow.yml`, with any key in `.project-workflow.local.yml` applied over it. No `.project-workflow.yml` → stop with the opt-in message from the rules doc; render nothing.
+3. **Resolve the project** (below), then **read the repo config** from the main checkout that holds it: `.project-workflow.yml`, with any key in `.project-workflow.local.yml` applied over it. Neither file there, or no `tracker` key between them → stop with the opt-in message from the rules doc; render nothing.
 4. **Load the op sheet** `../../trackers/<tracker>.md` for the config's `tracker`. No such sheet → stop, naming the missing file and `../../docs/adding-a-tracker.md`. Ops below are written as `op-name`; perform each exactly as the sheet says.
 
 ## Two depths (default is status)

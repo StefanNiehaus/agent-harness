@@ -11,7 +11,7 @@ description: Use when the user or an agent wants a review page for the project o
 
 1. **Find the plugin.** Resolve the real path of the folder that holds this `SKILL.md`, following symlinks (`cd -P "<skill folder>" && pwd -P`). The plugin root is two levels above that real path.
 2. **Read the rules** at `../../docs/project-workflow.md` and this skill's `learnings.md`.
-3. **Read the repo config.** `main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')`. No `$main/.project-workflow.yml` → stop with the opt-in message from the rules doc; write nothing. This skill makes no ticket calls, so it loads no op sheet.
+3. **Read the repo config.** `main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')`. Neither `$main/.project-workflow.yml` nor `$main/.project-workflow.local.yml`, or no `tracker` key between them → stop with the opt-in message from the rules doc; write nothing. This skill makes no ticket calls, so it loads no op sheet.
 
 ## Flow
 

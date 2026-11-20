@@ -11,7 +11,7 @@ description: Use when the user wants to start a project — an effort of two or 
 
 1. **Find the plugin.** Resolve the real path of the folder that holds this `SKILL.md`, following symlinks (`cd -P "<skill folder>" && pwd -P`). The plugin root is two levels above that real path. Resolve first: shortening `..` against a symlinked path lands in the wrong place.
 2. **Read the rules** at `../../docs/project-workflow.md` and this skill's `learnings.md`.
-3. **Read the repo config.** `main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')`; not in a git repo → stop and ask which repo the project lives in. Read `$main/.project-workflow.yml`, then apply any key set in `$main/.project-workflow.local.yml` over it. No `.project-workflow.yml` → stop with the opt-in message from the rules doc ("Opting a repo in"); create nothing.
+3. **Read the repo config.** `main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')`; not in a git repo → stop and ask which repo the project lives in. Read `$main/.project-workflow.yml`, then apply any key set in `$main/.project-workflow.local.yml` over it. Neither file there, or no `tracker` key between them → stop with the opt-in message from the rules doc ("Opting a repo in"); create nothing.
 4. **Load the op sheet** `../../trackers/<tracker>.md` for the config's `tracker`. No such sheet → stop, naming the missing file and `../../docs/adding-a-tracker.md`. Ops below are written as `op-name`; perform each exactly as the sheet says.
 
 ## Flow
@@ -38,7 +38,7 @@ description: Use when the user wants to start a project — an effort of two or 
 - Writes only `tracker.md` and `decomposition.md` inside the new project directory (and creates that directory). No `docs/`, `pages/`, `proof/`, `ladders/` or `archive/` — each appears on first use.
 - Uses only the read ops (`read-root`, `read-ticket`). Never creates, edits, advances or reparents a ticket.
 - Never overwrites an existing project directory, and never opens a second project for the same root.
-- Writes nothing at all in a repo without `.project-workflow.yml`.
+- Writes nothing at all in a repo that has not opted in.
 
 ## Learnings
 

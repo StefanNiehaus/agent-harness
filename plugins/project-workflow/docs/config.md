@@ -38,7 +38,7 @@ jira:
 
 An optional `.project-workflow.local.yml` beside the committed file overrides any key for one user. Keep it out
 of git (add it to `.gitignore`). Use it for values that differ per person, such as `archive_root` or
-`github.account`.
+`github.account`. It also works on its own: a repo with only the local file is opted in for that user.
 
 ## Credentials
 

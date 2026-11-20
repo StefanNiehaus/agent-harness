@@ -32,8 +32,9 @@ plan doc and a worktree suffice.
 ## Opting a repo in
 
 A repo opts in with a `.project-workflow.yml` at the root of its main checkout, naming its tracker and that
-tracker's settings (`config.md` beside this file lists every key). A `pw-*` skill run without it writes nothing
-and answers:
+tracker's settings (`config.md` beside this file lists every key). A user who cannot commit that file can opt in
+alone with a gitignored `.project-workflow.local.yml` in the same place, which otherwise only overrides keys. A
+`pw-*` skill run where neither file names a `tracker` writes nothing and answers:
 
 > This repo has not opted in to the project workflow. Add `.project-workflow.yml` to the root of the main
 > checkout with at least `tracker: <name>` and that tracker's settings block — see `<absolute path of config.md>`.

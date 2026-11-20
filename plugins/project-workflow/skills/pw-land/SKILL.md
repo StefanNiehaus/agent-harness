@@ -17,7 +17,7 @@ No mode word or task id → ask which.
 1. **Find the plugin.** Resolve the real path of the folder that holds this `SKILL.md`, following symlinks (`cd -P "<skill folder>" && pwd -P`). The plugin root is two levels above that real path. Resolve first: shortening `..` against a symlinked path lands in the wrong place.
 2. **Read the rules** at `../../docs/project-workflow.md` and this skill's `learnings.md`.
 3. **Resolve the project** as `/pw-check` does: `main=$(git worktree list --porcelain | sed -n '1s/^worktree //p')`, then `scratch/*/tracker.md` under the repos root matched against the argument. Several or none → list and ask.
-4. **Read the repo config** from that main checkout: `.project-workflow.yml`, with any key in `.project-workflow.local.yml` applied over it. No `.project-workflow.yml` → stop with the opt-in message from the rules doc; write nothing. Note `done` (`owner` when unset) and `archive_root`.
+4. **Read the repo config** from that main checkout: `.project-workflow.yml`, with any key in `.project-workflow.local.yml` applied over it. Neither file there, or no `tracker` key between them → stop with the opt-in message from the rules doc; write nothing. Note `done` (`owner` when unset) and `archive_root`.
 5. **Load the op sheet** `../../trackers/<tracker>.md` for the config's `tracker`. No such sheet → stop, naming the missing file and `../../docs/adding-a-tracker.md`. Ops below are written as `op-name`; perform each exactly as the sheet says.
 
 **Edits are targeted string replacements**, never whole-file rewrites. A ticket op that fails with an access error → stop and report; credentials can change.
