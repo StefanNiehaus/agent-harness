@@ -28,8 +28,11 @@ fail() { # fail <path relative to root> <line or -> <reason>
 grep_lines() { grep -nIE $2 -- "$1" "$3" 2>/dev/null | sed 's/:/\t/'; }
 
 # A doc that must name trackers (config examples, the adding-a-tracker guide) opts out of the
-# tracker-neutral check with this marker in its first five lines.
-is_tracker_specific_doc() { head -n 5 "$1" | grep -q '<!-- tracker-specific -->'; }
+# tracker-neutral check with this marker in its first five lines. Only files under a plugin's docs/
+# may opt out: a skill or template carrying the marker is still checked.
+is_tracker_specific_doc() { # <plugin dir> <file>
+  case "$2" in "$1"/docs/*) head -n 5 "$2" | grep -q '<!-- tracker-specific -->' ;; *) return 1 ;; esac
+}
 
 check_frontmatter() { # <root> <SKILL.md>
   local root=$1 file=$2 rel=${2#"$1"/} dir name key n=0 in=0
@@ -124,11 +127,10 @@ PY
 list_text_files() { # <root>: every file to scan for personal values, relative to root
   local root=$1
   if [ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$root" && pwd -P)" ]; then
-    # The fixtures hold the banned shapes on purpose.
-    git -C "$root" ls-files -co --exclude-standard | grep -v '^tests/fixtures/'
+    git -C "$root" ls-files -co --exclude-standard
   else
-    (cd "$root" && find . -type f -not -name expect | sed 's#^\./##')
-  fi
+    (cd "$root" && find . -type f -not -name expect -not -name .denylist.local | sed 's#^\./##')
+  fi | grep -v '^tests/fixtures/' # the fixtures hold the banned shapes on purpose
 }
 
 check_personal_values() { # <root>
@@ -174,7 +176,7 @@ check_root() { # <root>
       check_banned "$root" "$file" "$AGENT_SPECIFIC" "" "agent-specific name"
     done < <(find "$plugin/skills" "$plugin/docs" "$plugin/templates" "$plugin/trackers" -type f 2>/dev/null)
     while IFS= read -r file; do
-      is_tracker_specific_doc "$file" && continue
+      is_tracker_specific_doc "$plugin" "$file" && continue
       check_banned "$root" "$file" "$TRACKER_SPECIFIC" "-i" "tracker-specific term outside a tracker sheet"
     done < <(find "$plugin/skills" "$plugin/docs" "$plugin/templates" -type f 2>/dev/null)
     check_ops "$root" "$plugin"
@@ -222,7 +224,7 @@ expect_pass() { # <fixture> <label> [env assignment]
 }
 
 for fx in bad-mcp-tool bad-plugin-root-var bad-frontmatter-key bad-name-mismatch bad-tracker-term \
-  bad-missing-op bad-email bad-root-email bad-relative-path bad-manifest; do
+  bad-marker-in-skill bad-missing-op bad-email bad-root-email bad-relative-path bad-manifest; do
   expect_fail "$fx"
 done
 expect_pass clean "clean fixture passes"
@@ -232,6 +234,16 @@ echo "acmecorp" > "$deny"
 expect_pass denylist-term "denylist fixture passes with no denylist"
 expect_fail denylist-term "PW_DENYLIST_FILE=$deny"
 rm -f "$deny"
+
+# ---- a copy of the repo outside git must pass too (tarball download) ----
+copy=$(mktemp -d)
+(cd "$here/.." && tar -cf - --exclude=.git --exclude=.worktrees --exclude=.denylist.local .) | tar -xf - -C "$copy"
+if out=$(PW_DENYLIST_FILE=/dev/null bash "$0" --check "$copy"); then
+  echo "ok - a non-git copy of the repo passes"
+else
+  echo "not ok - a non-git copy of the repo fails"; printf '%s\n' "$out" | sed 's/^/    /'; bad=$((bad + 1))
+fi
+rm -rf "$copy"
 
 # ---- the real repo ----
 repo=$(cd "$here/.." && pwd)

@@ -41,7 +41,7 @@ while [ $# -gt 0 ]; do
     --agent)
       [ $# -ge 2 ] || { echo "error: --agent needs a name" >&2; exit 2; }
       dir=$(agent_dir "$2")
-      [ -n "$dir" ] || { echo "error: unknown agent '$2' (known: claude, codex, gemini, cursor; or use --dir <path>)" >&2; exit 2; }
+      [ -n "$dir" ] || { echo "error: unknown agent '$2' (known: claude, codex, gemini, cursor, agents; or use --dir <path>)" >&2; exit 2; }
       targets+=("$dir"); shift ;;
     --dir)
       [ $# -ge 2 ] || { echo "error: --dir needs a path" >&2; exit 2; }

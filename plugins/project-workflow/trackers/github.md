@@ -84,7 +84,8 @@ gh issue comment <n> -R <repo> --body-file <file>
 
 ## `advance-status`
 
-Status short of closing is carried by two labels. Create a label the first time it is needed:
+Status short of closing is carried by two labels. Before any label edit in this op or in `close`, run both
+create commands: `--force` makes them safe to repeat, and an edit that names a label the repo does not have fails.
 
 ```bash
 gh label create "pw:in-progress" -R <repo> --color FBCA04 --description "Project workflow: work started" --force
@@ -103,6 +104,8 @@ A closed issue, or one already carrying `pw:ready-to-close`, is left alone and r
 gh issue close <n> -R <repo> --reason completed
 gh issue edit <n> -R <repo> --remove-label "pw:in-progress" --remove-label "pw:ready-to-close"
 ```
+
+Run the two label-create commands from `advance-status` first, so the label edit cannot fail on a missing label.
 
 ## `cancel`
 
