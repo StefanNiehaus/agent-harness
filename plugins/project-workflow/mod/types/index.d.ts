@@ -32,9 +32,13 @@ export type Project = {
   board: Board | null
 }
 
+/** The repo the session is in: its main checkout (null outside git) and whether a config opts it in. */
+export type Repo = { main: string | null; isOptedIn: boolean }
+
 declare module 'claude-code' {
   interface PluginState {
     'pw-board': {
+      repo: Shaped<Repo>
       projects: Shaped<Project[]>
       selected: string | null
       isBandHidden: boolean

@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { Board, Project } from '../types'
+import type { Board, Project, Repo } from '../types'
 import { CHIP_LOOK, parseTracker } from './tracker'
 
 const PANE = 'pw-board'
@@ -14,6 +14,11 @@ const BRIEF_RE = /[\\/]scratch[\\/]([^\\/]+)[\\/]briefs[\\/]([^\\/]+\.html)$/
 const projects = atom({ plugin: 'pw-board', key: 'projects' } as const, [], {
   shape: 'projects-1',
 })
+const repo = atom(
+  { plugin: 'pw-board', key: 'repo' } as const,
+  { main: null, isOptedIn: false },
+  { shape: 'repo-1' },
+)
 const selected = atom({ plugin: 'pw-board', key: 'selected' } as const, null)
 const isBandHidden = atom({ plugin: 'pw-board', key: 'isBandHidden' } as const, false)
 
@@ -35,6 +40,17 @@ const readOr = async ($: EngineInterface, path: string, fallback: string) =>
 /** Re-reads every project folder whose tracker.md changed since the last look. */
 const refresh = async ($: EngineInterface) => {
   const main = await mainCheckout($)
+  const configs = main
+    ? await Promise.all(
+        ['.project-workflow.yml', '.project-workflow.local.yml'].map(name => readOr($, join(main, name), '')),
+      )
+    : []
+  const isOptedIn = configs.some(text => /^tracker:\s*\S/m.test(text))
+  const before = await read($, repo)
+  if (before.main !== main || before.isOptedIn !== isOptedIn) {
+    const next: Repo = { main, isOptedIn }
+    await update($, repo, () => next)
+  }
   const scratch = main ? join(main, 'scratch') : null
   const entries = scratch ? await $.fs.list(scratch).catch(() => []) : []
   const known = new Map((await read($, projects)).map(p => [p.dir, p]))
@@ -117,15 +133,60 @@ export const register: Register = on => {
 
   // A: the board pane.
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text, Button, Select } = $.ui.resolve(e)
+    const { Box, Text, Button, Select, Code } = $.ui.resolve(e)
     const list = await read($, projects)
     const project = await current($)
 
     if (!project) {
+      const { main, isOptedIn } = await read($, repo)
+      if (main === null) {
+        return (
+          <Box flexDirection="column" gap={1}>
+            <Text bold>No repo here</Text>
+            <Text dimColor>Open a session inside a git repo to see its projects.</Text>
+          </Box>
+        )
+      }
+      if (!isOptedIn) {
+        return (
+          <Box flexDirection="column" gap={1}>
+            <Text bold>Set this repo up first</Text>
+            <Text dimColor>
+              Commit a .project-workflow.yml at the repo root naming your ticket tracker, for example:
+            </Text>
+            <Code language="yaml" source={'tracker: github\ndone: owner\ngithub:\n  repo: your-org/your-repo'} />
+            <Text dimColor>Jira works too: see the project-workflow README. Then open a project here.</Text>
+          </Box>
+        )
+      }
       return (
         <Box flexDirection="column" gap={1}>
-          <Text dimColor>No project in this repo's scratch folder yet.</Text>
-          <Text dimColor>Start one with /pw-open followed by the root ticket.</Text>
+          <Box flexDirection="column">
+            <Text bold>Start your first project</Text>
+            <Text dimColor>
+              A project groups several deliverables under one root ticket, tracked in one file.
+            </Text>
+          </Box>
+          <Box flexDirection="column">
+            <Text>For example, for GitHub issue 12:</Text>
+            <Code source="/pw-open GH-12" />
+            <Text dimColor>{'This creates scratch/GH-12-<short-name>/ with its tracker, and the board shows it here.'}</Text>
+          </Box>
+          <Box flexDirection="row">
+            <Button
+              key="start"
+              label="Start a project"
+              variant="primary"
+              onPress={() => void $.prompt.fill({ text: '/pw-open ' })}
+            />
+          </Box>
+          <Box flexDirection="column">
+            <Text bold>Then</Text>
+            <Text dimColor>1. Check where it stands with Reconcile, here or /pw-status</Text>
+            <Text dimColor>2. Start each deliverable in a fresh session with its start line</Text>
+            <Text dimColor>3. Ask for decisions with /pw-brief; they show under Needs you</Text>
+            <Text dimColor>4. Land merged work with /pw-land, and close the project when done</Text>
+          </Box>
         </Box>
       )
     }
