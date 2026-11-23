@@ -7,7 +7,7 @@ and a Claude Code plugin at once, built from one folder. Nothing installs unless
 
 | Plugin | What it gives you | Needs |
 |---|---|---|
-| [`project-workflow`](plugins/project-workflow/) | Run an effort of several deliverables and agent threads from one living tracker file: `/pw-open`, `/pw-check`, `/pw-land`, `/pw-page`. Works with GitHub or Jira tickets. | [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin), `git`, `gh` |
+| [`project-workflow`](plugins/project-workflow/) | Run an effort of several deliverables and agent threads from one living tracker file: `/pw-open`, `/pw-status`, `/pw-land`, `/pw-brief`. Works with GitHub or Jira tickets. | [Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin), `git`, `gh` |
 
 ## Install
 

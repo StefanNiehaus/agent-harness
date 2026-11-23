@@ -1,0 +1,7 @@
+{
+  "name": "pw-board",
+  "version": "0.1.0",
+  "description": "Shows project-workflow trackers beside the chat: a board pane, a band above the prompt, and a card for each brief",
+  "license": "Apache-2.0",
+  "types": "./types/index.d.ts"
+}

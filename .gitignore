@@ -3,3 +3,5 @@ scratch/
 .claude/worktrees/
 .denylist.local
 .project-workflow.local.yml
+# Written by Claude Code each time it loads the board mod.
+plugins/*/mod/.claude-plugin/types/

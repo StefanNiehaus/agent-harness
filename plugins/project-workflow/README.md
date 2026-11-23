@@ -9,12 +9,35 @@ work, and four skills keep it honest against your ticket tracker.
 | Skill | What it does |
 |---|---|
 | `/pw-open <root> [<short-name>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
-| `/pw-check <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
+| `/pw-status <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
 | `/pw-land <project> <task-id>` | Lands a merged deliverable: flips its row, walks its ticket, cleans up its worktree. `/pw-land <project> close` closes and archives the project. |
-| `/pw-page <project> <id> <topic>` | Writes a self-contained HTML review page for the project owner. |
+| `/pw-brief <project> <id> <topic>` | Writes a self-contained HTML decision brief for the project owner. |
 
 The rules every thread follows are in [`docs/project-workflow.md`](docs/project-workflow.md). Nothing injects
 them into a session: each skill reads them when it starts, and every tracker file's header carries their path.
+
+**Optional, Claude Code only:** the [`pw-board` mod](mod/) shows a project's tracker beside the chat as a board,
+with a one-line summary above the prompt and a card under each brief. The skills work without it.
+
+## Using it day to day
+
+1. **Open a project** from its root ticket: `/pw-open GH-12`. You get `scratch/GH-12-<short-name>/` with a
+   `tracker.md` (what is in flight) and a `decomposition.md` (scope, and a Queue of work not yet started).
+2. **Check where things stand** with `/pw-status GH-12`. It reconciles the tracker against your tickets, PRs and
+   worktrees and shows each deliverable in plain English, the critical path and the next actions. It changes
+   nothing, so run it whenever you come back to the project.
+3. **Start work** in a fresh session with the one-line pointer the rules doc gives, for example
+   `/ce-plan GH-12, D2 — first read the tracker at <path>`. The deliverable's bridge in the tracker carries the
+   rest; if you are writing a long hand-off, fix the bridge instead.
+4. **Ask for a decision** with `/pw-brief GH-12 d2 merge-strategy` when a thread needs the owner to choose. The
+   brief puts the decision first and is listed under Open decisions until it is settled.
+5. **Land merged work** with `/pw-land GH-12 D2`: it flips the row, walks the ticket and cleans up the worktree.
+6. **Tidy up** between sessions with `/pw-status GH-12 sweep`, which fixes drift it finds. Run it only when no
+   thread is working on the project.
+7. **Close the project** with `/pw-land GH-12 close` when the work is done. Nothing is closed or archived until
+   you approve.
+
+Stuck? `/pw-status` in a repo with no project prints this loop.
 
 ## Prerequisites
 

@@ -44,7 +44,7 @@ linear:
 | `status-map` | `backlog` and `unstarted` → ⬜ · `started` → 🟡 · review state or `pw-ready-to-close` label → 🟢 · `completed` → 🟢 · `canceled` → ❌ |
 
 With the sheet saved as `trackers/linear.md` and the config above in a repo, `/pw-open ENG-123` reads the root
-through `read-root` and `/pw-check` reconciles through `read-ticket` and `list-children`. Neither skill file
+through `read-root` and `/pw-status` reconciles through `read-ticket` and `list-children`. Neither skill file
 changed.
 
 ## What makes a good sheet

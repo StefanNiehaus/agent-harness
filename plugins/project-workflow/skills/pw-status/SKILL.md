@@ -1,9 +1,9 @@
 ---
-name: pw-check
-description: Use when the user wants the state of a project (an effort tracked by a living `scratch/<root>-<short-name>/tracker.md`) — phrases like "/pw-check", "check the <name> project", "where's the <name> project", "status of the <name> project", or "sweep the <name> project". Reads the project's tracker file FIRST, reconciles it against the live tickets in the repo's configured ticket tracker and the open PRs/branches/worktrees, then renders a plain-English deliverable table (each row says what it delivers, not just "D4"), the ladders, the Queue head, the critical path and next actions. Reads only the project-workflow/v1 shape; an old-shape tracker gets no board and a pointer to `/pw-land <project> close`. Default depth is a READ-ONLY snapshot; "sweep" adds tracker-file, ladder, archive and ticket maintenance and may write. Names a project by name, root key or tracker path; asks when ambiguous.
+name: pw-status
+description: Use when the user wants the state of a project (an effort tracked by a living `scratch/<root>-<short-name>/tracker.md`) — phrases like "/pw-status", "check the <name> project", "where's the <name> project", "status of the <name> project", or "sweep the <name> project". Reads the project's tracker file FIRST, reconciles it against the live tickets in the repo's configured ticket tracker and the open PRs/branches/worktrees, then renders a plain-English deliverable table (each row says what it delivers, not just "D4"), the ladders, the Queue head, the critical path and next actions. Reads only the project-workflow/v1 shape; an old-shape tracker gets no board and a pointer to `/pw-land <project> close`. Default depth is a READ-ONLY snapshot; "sweep" adds tracker-file, ladder, archive and ticket maintenance and may write. Names a project by name, root key or tracker path; asks when ambiguous.
 ---
 
-# /pw-check — project snapshot from the living tracker
+# /pw-status — project snapshot from the living tracker
 
 Repeat-use skill. Produces a glanceable, plain-English status of a **project** — an effort split into deliverables and tracked by a living `scratch/<root>-<short-name>/tracker.md`. The tracker file is the engine: read it first, then reconcile it against the ticket tracker (status of record) and reality (open PRs, branches, worktrees) so the snapshot is true even if the file drifted.
 
@@ -35,6 +35,20 @@ find "$repos_root" -maxdepth 4 -path '*/scratch/*/tracker.md' -not -path '*/.wor
 
 Outside a git repo, ask which repo holds the project. Match the argument (a name, a root key, or a path) against the dir names and, if needed, each tracker's title line. Exactly one match → use it. Several or none → list them (dir + first heading) and ask; never guess. The repo config is read from the main checkout that holds the matched project.
 
+**No tracker anywhere → print the guide and stop.** When the search finds no `tracker.md` at all, say so in one line (naming where you looked), then print this loop, filling in the repo's opt-in state (config present or not) on the first line, and write nothing:
+
+```
+No project yet. This repo is <opted in | not opted in: add .project-workflow.yml, see the plugin README>.
+1. /pw-open <root ticket>              start a project folder from the root ticket
+2. /pw-status <project>                see where it stands (read-only, run any time)
+3. /<entry skill> <project>, <D#> — first read the tracker at <path>
+                                       start a deliverable in a fresh session
+4. /pw-brief <project> <id> <topic>    put a decision in front of the owner
+5. /pw-land <project> <D#>             land merged work
+6. /pw-status <project> sweep          fix drift between sessions, with no thread live
+7. /pw-land <project> close            close and archive when done
+```
+
 ## Shape check (before anything else)
 
 Read the tracker file. A new-shape tracker carries the line `Shape: project-workflow/v1` in its header. **Without it, stop:** render no board, run no reconcile, write nothing (even in `sweep`), and answer:
@@ -43,7 +57,7 @@ Read the tracker file. A new-shape tracker carries the line `Shape: project-work
 
 ## Flow (status, new shape)
 
-1. **Read the project surfaces.** From `tracker.md`: the header's `Rules:` path, board rows (State chip, optional `n/m` roll-up, clause), the Ladders table, Messages (unread count, oldest date, dead-letter candidates), per-deliverable detail (bridges and `Bn` tables — the source of each row's plain-English outcome), project-level tickets, critical path, next actions, open decisions. From `decomposition.md`: the Ledger's last row and the Queue (count of unnumbered handles, first two in order). Each listed `ladders/<NAME>.md`: its step table and queue length. `ls` of `docs/`, `pages/` and `proof/` (names, not content).
+1. **Read the project surfaces.** From `tracker.md`: the header's `Rules:` path, board rows (State chip, optional `n/m` roll-up, clause), the Ladders table, Messages (unread count, oldest date, dead-letter candidates), per-deliverable detail (bridges and `Bn` tables — the source of each row's plain-English outcome), project-level tickets, critical path, next actions, open decisions. From `decomposition.md`: the Ledger's last row and the Queue (count of unnumbered handles, first two in order). Each listed `ladders/<NAME>.md`: its step table and queue length. `ls` of `docs/`, `briefs/` and `proof/` (names, not content).
 
 2. **Reconcile tickets.** Collect every key the tracker file, decomposition and ladders name (deliverables, project-level tickets, umbrellas, the root) and read them all with `read-ticket`, following its pagination to the end. Then `list-children` of the root and diff the result against the named keys: a ticket cut at dispatch can be missing from the board. Map each ticket's state to a chip with the sheet's `status-map`. A ticket that maps to 🟢 because it is *landed and waiting for its owner* agrees with a 🟢 row and is not drift. 🔴 has no ticket mapping (render its gate); ⚪ reconciles nothing (follow its pointer). Note every real drift.
 
@@ -95,7 +109,7 @@ Terse and scannable — no raw JSON, no per-field dumps.
 - **File writes only in `sweep`, only on a new-shape project's `tracker.md`, `ladders/*.md` and `archive/`** (targeted edits; `archive/` files may be created or appended), plus this skill's `learnings.md`. Never rewrite a tracker or ladder file wholesale; never edit `decomposition.md`, committed repo files, plan docs or memory.
 - **Ticket writes only in `sweep`, only for plainly-stale tickets**, and never `close` under `done: owner`.
 - **Never delete a worktree or branch unprompted.**
-- **Read the tracker file first, every run.** No tracker file → say so (the effort may be below the project threshold) rather than inventing a board.
+- **Read the tracker file first, every run.** No tracker file → say so (the effort may be below the project threshold) rather than inventing a board; with none in the repo at all, print the guide from Resolving the project.
 - **Reality wins.** When tickets or PRs disagree with the tracker file, trust them and surface the drift.
 
 ## Repeating

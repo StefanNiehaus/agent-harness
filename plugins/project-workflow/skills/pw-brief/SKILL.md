@@ -1,11 +1,11 @@
 ---
-name: pw-page
-description: Use when the user or an agent wants a review page for the project owner — phrases like "/pw-page", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 review page". Writes one self-contained HTML page into the project's `pages/` folder under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same page, and returns its absolute path.
+name: pw-brief
+description: Use when the user or an agent wants a decision brief for the project owner — phrases like "/pw-brief", "write a brief for this", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 brief". Writes one self-contained HTML brief into the project's `briefs/` folder under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same brief, and returns its absolute path.
 ---
 
-# /pw-page — write a review page into `pages/`
+# /pw-brief — write a decision brief into `briefs/`
 
-`/pw-page <project> <id> <topic>`. The substance comes from the current conversation (the design, options, evidence or decision the page is for); this skill fixes where it goes and how it reads.
+`/pw-brief <project> <id> <topic>`. A brief is one HTML page that puts a decision, a confirmation or a comparison in front of the project owner. The substance comes from the current conversation (the design, options, evidence or decision the brief is for); this skill fixes where it goes and how it reads.
 
 ## Start (every run)
 
@@ -15,8 +15,8 @@ description: Use when the user or an agent wants a review page for the project o
 
 ## Flow
 
-1. **Resolve the project** as `/pw-check` does: `scratch/*/tracker.md` under the main checkout, matched against the argument (name, root key or path). Several or none → list and ask.
-2. **Name the file** `pages/<id>-<topic>.html`: `<id>` is the ticket key or task id the page serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `pages/` if missing.
+1. **Resolve the project** as `/pw-status` does: `scratch/*/tracker.md` under the main checkout, matched against the argument (name, root key or path). Several or none → list and ask.
+2. **Name the file** `briefs/<id>-<topic>.html`: `<id>` is the ticket key or task id the page serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
 3. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state.
 4. **Write the page** (contract below) and **return its absolute path**. Do not edit the tracker: the bridge, Queue line or open decision that needs the page cites the path itself.
 
@@ -37,7 +37,7 @@ description: Use when the user or an agent wants a review page for the project o
 
 ## Hard constraints
 
-- Writes only inside the resolved project's `pages/`.
+- Writes only inside the resolved project's `briefs/`.
 - Never commits the page and never copies it into a repo.
 
 ## Learnings

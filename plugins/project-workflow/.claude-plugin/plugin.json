@@ -1,6 +1,6 @@
 {
   "name": "project-workflow",
-  "description": "Project workflow for small multi-thread efforts: a rules doc with a project folder map, tracker/decomposition/ladder templates, pluggable ticket-tracker op sheets (GitHub, Jira), and the /pw-open, /pw-check, /pw-land and /pw-page skills",
+  "description": "Project workflow for small multi-thread efforts: a rules doc with a project folder map, tracker/decomposition/ladder templates, pluggable ticket-tracker op sheets (GitHub, Jira), and the /pw-open, /pw-status, /pw-land and /pw-brief skills",
   "license": "Apache-2.0",
   "author": {
     "name": "StefanNiehaus",
