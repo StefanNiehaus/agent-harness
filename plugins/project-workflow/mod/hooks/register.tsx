@@ -168,9 +168,11 @@ export const register: Register = on => {
             </Text>
           </Box>
           <Box flexDirection="column">
-            <Text>For example, for GitHub issue 12:</Text>
-            <Code source="/pw-open GH-12" />
-            <Text dimColor>{'This creates scratch/GH-12-<short-name>/ with its tracker, and the board shows it here.'}</Text>
+            <Text>Run /pw-open and describe in brief what you want to accomplish, or your problem:</Text>
+            <Code source="/pw-open add offline sync to the mobile app" />
+            <Text dimColor>
+              {'It cuts the root ticket for you (say GH-12), creates scratch/GH-12-<short-name>/ with its tracker, and the board shows it here.'}
+            </Text>
           </Box>
           <Box flexDirection="row">
             <Button

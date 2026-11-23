@@ -39,7 +39,7 @@ Outside a git repo, ask which repo holds the project. Match the argument (a name
 
 ```
 No project yet. This repo is <opted in | not opted in: add .project-workflow.yml, see the plugin README>.
-1. /pw-open <root ticket>              start a project folder from the root ticket
+1. /pw-open <what you want to do>      describe the work; it cuts the root ticket and starts the project
 2. /pw-status <project>                see where it stands (read-only, run any time)
 3. /<entry skill> <project>, <D#> — first read the tracker at <path>
                                        start a deliverable in a fresh session

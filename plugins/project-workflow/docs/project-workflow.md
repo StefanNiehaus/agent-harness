@@ -114,7 +114,8 @@ close it. An obsolete ticket is always cancelled through the sheet's `cancel` op
 
 ## Skills
 
-- `/pw-open <root> [<short-name>] [<ticket>…]` — create the project folder from the templates; seed the Queue.
+- `/pw-open [<description>]` — ask for a short description when none is given, cut the root ticket from it,
+  create the project folder from the templates; seed the Queue. `/pw-open <root key>` uses an existing root.
 - `/pw-land <project> <task-id>` — land a deliverable or ladder step in hot context: compound, row flip, ticket
   walk, worktree cleanup last. `/pw-land <project> close` — close the project: ticket-or-drop table, owner
   approval, archive.
