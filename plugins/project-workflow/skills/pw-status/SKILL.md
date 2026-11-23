@@ -35,6 +35,20 @@ find "$repos_root" -maxdepth 4 -path '*/scratch/*/tracker.md' -not -path '*/.wor
 
 Outside a git repo, ask which repo holds the project. Match the argument (a name, a root key, or a path) against the dir names and, if needed, each tracker's title line. Exactly one match → use it. Several or none → list them (dir + first heading) and ask; never guess. The repo config is read from the main checkout that holds the matched project.
 
+**No tracker anywhere → print the guide and stop.** When the search finds no `tracker.md` at all, say so in one line (naming where you looked), then print this loop, filling in the repo's opt-in state (config present or not) on the first line, and write nothing:
+
+```
+No project yet. This repo is <opted in | not opted in: add .project-workflow.yml, see the plugin README>.
+1. /pw-open <root ticket>              start a project folder from the root ticket
+2. /pw-status <project>                see where it stands (read-only, run any time)
+3. /<entry skill> <project>, <D#> — first read the tracker at <path>
+                                       start a deliverable in a fresh session
+4. /pw-brief <project> <id> <topic>    put a decision in front of the owner
+5. /pw-land <project> <D#>             land merged work
+6. /pw-status <project> sweep          fix drift between sessions, with no thread live
+7. /pw-land <project> close            close and archive when done
+```
+
 ## Shape check (before anything else)
 
 Read the tracker file. A new-shape tracker carries the line `Shape: project-workflow/v1` in its header. **Without it, stop:** render no board, run no reconcile, write nothing (even in `sweep`), and answer:
@@ -95,7 +109,7 @@ Terse and scannable — no raw JSON, no per-field dumps.
 - **File writes only in `sweep`, only on a new-shape project's `tracker.md`, `ladders/*.md` and `archive/`** (targeted edits; `archive/` files may be created or appended), plus this skill's `learnings.md`. Never rewrite a tracker or ladder file wholesale; never edit `decomposition.md`, committed repo files, plan docs or memory.
 - **Ticket writes only in `sweep`, only for plainly-stale tickets**, and never `close` under `done: owner`.
 - **Never delete a worktree or branch unprompted.**
-- **Read the tracker file first, every run.** No tracker file → say so (the effort may be below the project threshold) rather than inventing a board.
+- **Read the tracker file first, every run.** No tracker file → say so (the effort may be below the project threshold) rather than inventing a board; with none in the repo at all, print the guide from Resolving the project.
 - **Reality wins.** When tickets or PRs disagree with the tracker file, trust them and surface the drift.
 
 ## Repeating
