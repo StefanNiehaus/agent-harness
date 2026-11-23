@@ -24,6 +24,8 @@ portable Agent Skills folders at once, built from one tree.
 - A skill misfires: one dated line in that skill's `learnings.md`. A behavior change: edit its `SKILL.md`.
 - A rule is missing or wrong: edit the plugin's rules doc.
 - A file shape changes: edit the template, and bump its `Shape:` version when old copies stop being readable.
+  `project-workflow`'s optional board mod parses the tracker and decomposition templates
+  (`plugins/project-workflow/mod/hooks/tracker.ts`): update it and its test in the same change.
 
 ## Tests
 

@@ -16,6 +16,9 @@ work, and four skills keep it honest against your ticket tracker.
 The rules every thread follows are in [`docs/project-workflow.md`](docs/project-workflow.md). Nothing injects
 them into a session: each skill reads them when it starts, and every tracker file's header carries their path.
 
+**Optional, Claude Code only:** the [`pw-board` mod](mod/) shows a project's tracker beside the chat as a board,
+with a one-line summary above the prompt and a card under each brief. The skills work without it.
+
 ## Prerequisites
 
 - **Compound Engineering.** The workflow's recipes are its `/ce-*` skills (`/ce-plan`, `/ce-work`, …).
