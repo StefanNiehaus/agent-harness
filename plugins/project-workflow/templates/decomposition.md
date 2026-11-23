@@ -27,7 +27,7 @@ and delete these guidance comments. The tracker routes; this file defines what t
 
 ## Queue (proposed order; no numbers)
 
-Docs named here live in this project's `docs/` or `pages/` unless an absolute path is given.
+Docs named here live in this project's `docs/` or `briefs/` unless an absolute path is given.
 
 **Inside D<n> (next B numbers):**
 - `<handle>` — <outcome in one or two lines> · <ticket, if one exists> · <pointers> · fence: <what stays out>.

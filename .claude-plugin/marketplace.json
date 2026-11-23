@@ -12,7 +12,7 @@
     {
       "name": "project-workflow",
       "source": "./plugins/project-workflow",
-      "description": "Run a multi-thread project from a living tracker: /pw-open, /pw-check, /pw-land and /pw-page, with GitHub or Jira as the ticket tracker"
+      "description": "Run a multi-thread project from a living tracker: /pw-open, /pw-status, /pw-land and /pw-brief, with GitHub or Jira as the ticket tracker"
     }
   ]
 }

@@ -3,13 +3,13 @@
 <!--
 TEMPLATE — `/pw-open` copies this to `scratch/<root>-<short-name>/tracker.md` in the repo's main checkout.
 Replace every <placeholder> and delete these guidance comments. A section exists only once something
-occupies it; the commented shapes below are how to add one later. Keep the Shape line: `/pw-check` reads it.
+occupies it; the commented shapes below are how to add one later. Keep the Shape line: `/pw-status` reads it.
 -->
 
 > **Living, gitignored tracker.** Lives ONLY in the main checkout: `<absolute path to this file>` — from a
 > `.worktrees/<branch>` checkout, read and edit it by that path. Created <YYYY-MM-DD>. Never commit it.
 > **Shape: project-workflow/v1.** Procedures: `/pw-land <project> <task-id>` · `/pw-land <project> close` ·
-> `/pw-page` · `/pw-check [sweep]`.
+> `/pw-brief` · `/pw-status [sweep]`.
 > **Rules:** `<absolute path to the plugin's docs/project-workflow.md>` — read it before working from this tracker.
 > **Tracker:** <tracker name from the repo config> · root <root key> · tickets close by: <owner | agent>.
 >
@@ -62,7 +62,7 @@ Dispatch each item with the formula in the rules doc; its bridge below is the co
 
 Decided entries → `archive/decisions.md` once amended into their owning surface.
 
-- _(none open)_ · <or: **<question> — open (<who>, gates `<handle>`):** <frame> → `pages/<id>-<topic>.html`.>
+- _(none open)_ · <or: **<question> — open (<who>, gates `<handle>`):** <frame> → `briefs/<id>-<topic>.html`.>
 
 ---
 

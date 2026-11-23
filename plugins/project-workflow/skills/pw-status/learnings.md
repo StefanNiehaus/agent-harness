@@ -1,4 +1,4 @@
-# pw-check learnings
+# pw-status learnings
 
 <!-- Append one observation per line:
      ### YYYY-MM-DD

@@ -9,9 +9,9 @@ work, and four skills keep it honest against your ticket tracker.
 | Skill | What it does |
 |---|---|
 | `/pw-open <root> [<short-name>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
-| `/pw-check <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
+| `/pw-status <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
 | `/pw-land <project> <task-id>` | Lands a merged deliverable: flips its row, walks its ticket, cleans up its worktree. `/pw-land <project> close` closes and archives the project. |
-| `/pw-page <project> <id> <topic>` | Writes a self-contained HTML review page for the project owner. |
+| `/pw-brief <project> <id> <topic>` | Writes a self-contained HTML decision brief for the project owner. |
 
 The rules every thread follows are in [`docs/project-workflow.md`](docs/project-workflow.md). Nothing injects
 them into a session: each skill reads them when it starts, and every tracker file's header carries their path.

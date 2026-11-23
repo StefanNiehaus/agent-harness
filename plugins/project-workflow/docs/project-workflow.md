@@ -51,7 +51,7 @@ scratch/<KEY>-<short-name>/        # root key exactly as the tracker's op sheet 
 ├── ladders/<NAME>.md        # one named queue of small one-PR fixes under one umbrella ticket
 ├── docs/                    # plans/ ideation/ reviews/ · brainstorms/ (legacy, read-only)
 │                            #   depth notes: concept- grounding- findings- future- (no other prefixes)
-├── pages/<id>-<topic>.html  # HTML review pages for the owner (`/pw-page`)
+├── briefs/<id>-<topic>.html # HTML decision briefs for the owner (`/pw-brief`)
 ├── proof/<id>-<topic>/      # one verification: README.md · harness/ · inputs/ · runs/<run>/
 └── archive/                 # decisions.md · maintenance-log.md · messages.md · <file>-<YYYY-MM-DD>-<reason>.md
 ```
@@ -59,8 +59,8 @@ scratch/<KEY>-<short-name>/        # root key exactly as the tracker's op sheet 
 A folder or section exists only once something occupies it, and nothing named `tmp` lives in a project. Plans keep
 CE's `YYYY-MM-DD-HHMM-<type>-<topic>-plan.md` so `/ce-work` copies them unchanged (`/ce-brainstorm` writes there
 too); depth notes are `<kind>-<YYYY-MM-DD>-<topic>.md`, each with one pointer line from the tracker or decomposition.
-`<id>` is the ticket or task an item serves (`gh-12`, `d2-b3`, `cb3`), never a date. **`pages/`** is flat by default;
-a page follows the terse contract: decision first, one line per item, latest state only, decided picks stay visible;
+`<id>` is the ticket or task an item serves (`gh-12`, `d2-b3`, `cb3`), never a date. **`briefs/`** is flat by default;
+a brief follows the terse contract: decision first, one line per item, latest state only, decided picks stay visible;
 a revision overwrites its file. **`proof/<id>-<topic>/`** holds one verification: a README stating the result (MATCH /
 DIFFERENT, with a broken control when one can be built) and how to re-run it; `harness/` files enter the repo only
 for a run and are never committed; `inputs/` holds captures, baselines and config snapshots; `runs/<run>/` holds
@@ -118,8 +118,8 @@ close it. An obsolete ticket is always cancelled through the sheet's `cancel` op
 - `/pw-land <project> <task-id>` — land a deliverable or ladder step in hot context: compound, row flip, ticket
   walk, worktree cleanup last. `/pw-land <project> close` — close the project: ticket-or-drop table, owner
   approval, archive.
-- `/pw-page <project> <id> <topic>` — write a review page into `pages/` and return its path.
-- `/pw-check <project> [sweep]` — reconciled read-only snapshot; `sweep` adds maintenance writes.
+- `/pw-brief <project> <id> <topic>` — write a decision brief into `briefs/` and return its path.
+- `/pw-status <project> [sweep]` — reconciled read-only snapshot; `sweep` adds maintenance writes.
 
 Each skill starts the same way: resolve the real path of its own skill folder and walk up two levels to the
 plugin, read this doc and its own `learnings.md`, read the repo config, then load the configured tracker's op
