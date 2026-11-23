@@ -125,8 +125,10 @@ PY
 }
 
 list_text_files() { # <root>: every file to scan for personal values, relative to root
-  local root=$1
-  if [ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$root" && pwd -P)" ]; then
+  local root=$1 top
+  # cd + pwd -P on both sides: git for Windows prints C:/x where bash prints /c/x
+  top=$(git -C "$root" rev-parse --show-toplevel 2>/dev/null) && top=$(cd "$top" && pwd -P)
+  if [ -n "$top" ] && [ "$top" = "$(cd "$root" && pwd -P)" ]; then
     git -C "$root" ls-files -co --exclude-standard
   else
     (cd "$root" && find . -type f -not -name expect -not -name .denylist.local | sed 's#^\./##')
