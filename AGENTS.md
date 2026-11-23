@@ -33,6 +33,10 @@ portable Agent Skills folders at once, built from one tree.
 `tests/structure.test.sh <root>` checks any plugin tree, which is how the fixtures under `tests/fixtures/`
 prove each failure case.
 
+Agent tools may put worktrees inside the clone (Claude Code uses `.claude/worktrees/`). Both that folder and
+`.worktrees/` are gitignored and left out of the test that checks a non-git copy of the repo, so a worktree's
+copy of the deliberately bad fixtures cannot fail it. Keep any new worktree location out of both.
+
 ### On Windows
 
 Run the tests in WSL, not Git Bash. Git Bash fails them for reasons that have nothing to do with the repo: its

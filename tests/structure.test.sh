@@ -239,7 +239,8 @@ rm -f "$deny"
 
 # ---- a copy of the repo outside git must pass too (tarball download) ----
 copy=$(mktemp -d)
-(cd "$here/.." && tar -cf - --exclude=.git --exclude=.worktrees --exclude=.denylist.local .) | tar -xf - -C "$copy"
+(cd "$here/.." && tar -cf - --exclude=.git --exclude=.worktrees --exclude=.claude/worktrees \
+  --exclude=.denylist.local .) | tar -xf - -C "$copy"
 if out=$(PW_DENYLIST_FILE=/dev/null bash "$0" --check "$copy"); then
   echo "ok - a non-git copy of the repo passes"
 else
