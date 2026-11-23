@@ -137,6 +137,11 @@ list_text_files() { # <root>: every file to scan for personal values, relative t
 
 check_personal_values() { # <root>
   local root=$1 denylist=${PW_DENYLIST_FILE:-$1/.denylist.local} rel file n text pattern
+  # The searches below hide grep's errors, so a grep that cannot run them would pass every file. Git Bash's
+  # grep 3.0 aborts on -iF without a UTF-8 locale. Prove the searches work before trusting a clean result.
+  if ! (printf 'Probe\n' | grep -qiF -- probe && printf 'a@example.com\n' | grep -qE "$EMAIL") 2>/dev/null; then
+    fail "tests/structure.test.sh" - "this grep cannot run the personal-value searches, so they would pass blindly (on Git Bash set LANG=C.UTF-8, or run the tests in WSL; see AGENTS.md)"
+  fi
   while IFS= read -r rel; do
     file=$root/$rel
     [ -f "$file" ] || continue
