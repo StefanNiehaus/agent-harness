@@ -125,8 +125,10 @@ PY
 }
 
 list_text_files() { # <root>: every file to scan for personal values, relative to root
-  local root=$1
-  if [ "$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$root" && pwd -P)" ]; then
+  local root=$1 top
+  # cd + pwd -P on both sides: git for Windows prints C:/x where bash prints /c/x
+  top=$(git -C "$root" rev-parse --show-toplevel 2>/dev/null) && top=$(cd "$top" && pwd -P)
+  if [ -n "$top" ] && [ "$top" = "$(cd "$root" && pwd -P)" ]; then
     git -C "$root" ls-files -co --exclude-standard
   else
     (cd "$root" && find . -type f -not -name expect -not -name .denylist.local | sed 's#^\./##')
@@ -135,6 +137,11 @@ list_text_files() { # <root>: every file to scan for personal values, relative t
 
 check_personal_values() { # <root>
   local root=$1 denylist=${PW_DENYLIST_FILE:-$1/.denylist.local} rel file n text pattern
+  # The searches below hide grep's errors, so a grep that cannot run them would pass every file. Git Bash's
+  # grep 3.0 aborts on -iF without a UTF-8 locale. Prove the searches work before trusting a clean result.
+  if ! (printf 'Probe\n' | grep -qiF -- probe && printf 'a@example.com\n' | grep -qE "$EMAIL") 2>/dev/null; then
+    fail "tests/structure.test.sh" - "this grep cannot run the personal-value searches, so they would pass blindly (on Git Bash set LANG=C.UTF-8, or run the tests in WSL; see AGENTS.md)"
+  fi
   while IFS= read -r rel; do
     file=$root/$rel
     [ -f "$file" ] || continue
@@ -237,7 +244,8 @@ rm -f "$deny"
 
 # ---- a copy of the repo outside git must pass too (tarball download) ----
 copy=$(mktemp -d)
-(cd "$here/.." && tar -cf - --exclude=.git --exclude=.worktrees --exclude=.denylist.local .) | tar -xf - -C "$copy"
+(cd "$here/.." && tar -cf - --exclude=.git --exclude=.worktrees --exclude=.claude/worktrees \
+  --exclude=.denylist.local .) | tar -xf - -C "$copy"
 if out=$(PW_DENYLIST_FILE=/dev/null bash "$0" --check "$copy"); then
   echo "ok - a non-git copy of the repo passes"
 else

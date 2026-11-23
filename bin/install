@@ -31,6 +31,17 @@ agent_dir() { # <agent name> -> skill directory, or empty when unknown
   esac
 }
 
+make_link() { # <src> <link>: create a link, never a copy
+  case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*)
+      # Git Bash's ln -s silently copies without Developer Mode. A directory junction needs neither that nor
+      # admin rights, and Git Bash sees it as a link (-L, readlink), so the checks below recognize it.
+      MSYS2_ARG_CONV_EXCL="*" cmd /c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null &&
+        [ -L "$2" ] ;;
+    *) ln -s "$1" "$2" ;;
+  esac
+}
+
 plugin=""
 uninstall=0
 targets=()
@@ -91,7 +102,7 @@ for target in "${targets[@]}"; do
     elif [ "$uninstall" -eq 1 ]; then
       echo "absent   $link"
     else
-      ln -s "$src" "$link"
+      make_link "$src" "$link" || { echo "error: could not link $link -> $src" >&2; exit 1; }
       echo "linked   $link -> $src"
     fi
   done
