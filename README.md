@@ -26,9 +26,9 @@ bin/install project-workflow --agent cursor   # or a named agent: claude, codex,
 bin/install project-workflow --dir <path>     # or any skill directory
 ```
 
-The script only creates symlinks. It never replaces a folder or a link it did not make, and
-`bin/install project-workflow --uninstall` removes exactly the links it made. Run `bin/install` with no
-arguments to list the plugins.
+The script only creates links (symlinks, or junctions on Windows), never copies. It never replaces a folder
+or a link it did not make, and `bin/install project-workflow --uninstall` removes exactly the links it made.
+Run `bin/install` with no arguments to list the plugins.
 
 ### Claude Code
 
@@ -53,21 +53,22 @@ cache, which is replaced when the plugin updates.
 
 ### On Windows
 
-Without Developer Mode, Git Bash's `ln -s` quietly **copies** each skill folder instead of linking it, so
-your edits and lessons never reach the clone. Check after installing: `bin/install` must say `present` on a
-second run. Two ways to get real links:
+Run `bin/install` from Git Bash. There it makes directory junctions instead of symlinks, which need neither
+admin rights nor Developer Mode, and it stops with an error rather than copying if a link cannot be made.
+`present`, `refused` and `--uninstall` treat the junctions like any other link.
 
-- **Directory junctions** (no admin, no Developer Mode). From PowerShell in the clone, for an agent's skill
-  folder (here Claude Code's):
+Optional alternatives:
+
+- **Junctions by hand**, from PowerShell in the clone (here for Claude Code's skill folder). `bin/install`
+  recognizes these as its own links:
 
   ```powershell
   Get-ChildItem plugins\project-workflow\skills -Directory | ForEach-Object {
     New-Item -ItemType Junction -Path "$HOME\.claude\skills\$($_.Name)" -Target $_.FullName }
   ```
 
-  `bin/install` recognizes these as its own links, so `--uninstall` removes them.
-- **Developer Mode** (Settings → System → For developers), then run `bin/install` with
-  `MSYS=winsymlinks:nativestrict` set, which makes Git Bash fail loudly instead of copying.
+- **Developer Mode** does not change what `bin/install` makes. Note that a plain `ln -s` in Git Bash without
+  it quietly copies the folder, so your edits and lessons never reach the clone.
 
 Do not install from WSL for a Windows agent: links made inside WSL may not resolve for Windows programs. To
 run the tests on Windows, see [`AGENTS.md`](AGENTS.md).
