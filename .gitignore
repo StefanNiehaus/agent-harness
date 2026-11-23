@@ -1,5 +1,6 @@
 scratch/
 .worktrees/
+.claude/worktrees/
 .denylist.local
 .project-workflow.local.yml
 # Written by Claude Code each time it loads the board mod.

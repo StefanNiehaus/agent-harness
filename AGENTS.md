@@ -26,9 +26,33 @@ portable Agent Skills folders at once, built from one tree.
 - A file shape changes: edit the template, and bump its `Shape:` version when old copies stop being readable.
   `project-workflow`'s optional board mod parses the tracker and decomposition templates
   (`plugins/project-workflow/mod/hooks/tracker.ts`): update it and its test in the same change.
+- A setup trap costs a contributor time: write the fix where the next person will look (Tests below, or the
+  README's Install), so nobody solves it twice.
 
 ## Tests
 
 `tests/run` executes every `tests/*.test.sh`. The tests are plain bash and need `python3` for JSON parsing.
 `tests/structure.test.sh <root>` checks any plugin tree, which is how the fixtures under `tests/fixtures/`
 prove each failure case.
+
+Agent tools may put worktrees inside the clone (Claude Code uses `.claude/worktrees/`). Both that folder and
+`.worktrees/` are gitignored and left out of the test that checks a non-git copy of the repo, so a worktree's
+copy of the deliberately bad fixtures cannot fail it. Keep any new worktree location out of both.
+
+### On Windows
+
+Run the tests in WSL, not Git Bash. Git Bash fails them for reasons that have nothing to do with the repo: its
+`ln -s` copies instead of linking unless Developer Mode is on, `python3` is often the Microsoft Store stub,
+and its `grep` 3.0 aborts on `grep -iF` without a UTF-8 locale. A WSL distro (Ubuntu) has none of these, and
+it can test the Windows clone in place:
+
+```powershell
+wsl -d Ubuntu --cd C:\path\to\agent-harness -- bash tests/run
+```
+
+- **Line endings.** `.gitattributes` keeps every text file LF whatever `core.autocrlf` says. A clone made
+  before that file existed may still hold CRLF copies: re-checkout with `git rm -r --cached . && git reset --hard`.
+- **Worktrees.** Git for Windows writes worktree links as `C:/...` paths, which WSL's git cannot follow. Once
+  per clone, run `git config worktree.useRelativePaths true`, then `git worktree repair --relative-paths`
+  (Git 2.48 or newer).
+- Commit and push from Windows; WSL only needs to run the tests.

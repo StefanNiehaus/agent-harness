@@ -26,9 +26,9 @@ bin/install project-workflow --agent cursor   # or a named agent: claude, codex,
 bin/install project-workflow --dir <path>     # or any skill directory
 ```
 
-The script only creates symlinks. It never replaces a folder or a link it did not make, and
-`bin/install project-workflow --uninstall` removes exactly the links it made. Run `bin/install` with no
-arguments to list the plugins.
+The script only creates links (symlinks, or junctions on Windows), never copies. It never replaces a folder
+or a link it did not make, and `bin/install project-workflow --uninstall` removes exactly the links it made.
+Run `bin/install` with no arguments to list the plugins.
 
 ### Claude Code
 
@@ -50,6 +50,28 @@ Pick **one** of these. Using both gives you two copies of every skill.
 Each skill appends lessons to a `learnings.md` in its own folder. With the symlink install that folder is
 your clone, so the lessons stay and you can commit them. With the marketplace install it is Claude's plugin
 cache, which is replaced when the plugin updates.
+
+### On Windows
+
+Run `bin/install` from Git Bash. There it makes directory junctions instead of symlinks, which need neither
+admin rights nor Developer Mode, and it stops with an error rather than copying if a link cannot be made.
+`present`, `refused` and `--uninstall` treat the junctions like any other link.
+
+Optional alternatives:
+
+- **Junctions by hand**, from PowerShell in the clone (here for Claude Code's skill folder). `bin/install`
+  recognizes these as its own links:
+
+  ```powershell
+  Get-ChildItem plugins\project-workflow\skills -Directory | ForEach-Object {
+    New-Item -ItemType Junction -Path "$HOME\.claude\skills\$($_.Name)" -Target $_.FullName }
+  ```
+
+- **Developer Mode** does not change what `bin/install` makes. Note that a plain `ln -s` in Git Bash without
+  it quietly copies the folder, so your edits and lessons never reach the clone.
+
+Do not install from WSL for a Windows agent: links made inside WSL may not resolve for Windows programs. To
+run the tests on Windows, see [`AGENTS.md`](AGENTS.md).
 
 ## After installing
 

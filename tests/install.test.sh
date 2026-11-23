@@ -19,6 +19,14 @@ links_into_clone() { # <dir>: count links that resolve to a skill folder in this
   done
   echo "$n"
 }
+case "$(uname -s)" in MINGW* | MSYS* | CYGWIN*) windows=1 ;; *) windows=0 ;; esac
+foreign_link() { # <src> <link>: a link bin/install did not make (Git Bash's ln -s would copy)
+  if [ "$windows" -eq 1 ]; then
+    MSYS2_ARG_CONV_EXCL="*" cmd /c mklink /J "$(cygpath -w "$2")" "$(cygpath -w "$1")" >/dev/null
+  else
+    ln -s "$1" "$2"
+  fi
+}
 homes=()
 new_home() { HOME=$(mktemp -d); export HOME; homes+=("$HOME"); }
 trap 'rm -rf "${homes[@]}"' EXIT
@@ -69,12 +77,34 @@ printf '%s\n' "$out" | grep -q "refused  $HOME/.agents/skills/pw-open" && ok "a 
 # a foreign link is never replaced
 new_home
 mkdir -p "$HOME/.agents/skills" "$HOME/elsewhere"
-ln -s "$HOME/elsewhere" "$HOME/.agents/skills/pw-open"
+foreign_link "$HOME/elsewhere" "$HOME/.agents/skills/pw-open"
 out=$("$install" project-workflow 2>&1); rc=$?
 check "a foreign link makes the run exit non-zero" "$rc" 1
 check "a foreign link is left untouched" "$(readlink "$HOME/.agents/skills/pw-open")" "$HOME/elsewhere"
 out=$("$install" project-workflow --uninstall 2>&1)
 check "uninstall does not remove a foreign link" "$(readlink "$HOME/.agents/skills/pw-open")" "$HOME/elsewhere"
+
+# a link that cannot be made stops the run; nothing is copied in its place
+new_home
+mkdir -p "$HOME/fakebin"
+for tool in ln cmd; do printf '#!/bin/sh\nexit 1\n' > "$HOME/fakebin/$tool"; chmod +x "$HOME/fakebin/$tool"; done
+out=$(PATH="$HOME/fakebin:$PATH" "$install" project-workflow 2>&1); rc=$?
+check "a failed link exits non-zero" "$rc" 1
+printf '%s\n' "$out" | grep -q '^error: could not link ' && ok "a failed link is reported" || not_ok "a failed link is reported" "$out"
+check "a failed link leaves nothing in its place" "$(find "$HOME/.agents/skills" -mindepth 1 | wc -l | tr -d ' ')" 0
+
+# on Windows Git Bash the links are directory junctions
+if [ "$windows" -eq 1 ]; then
+  new_home
+  "$install" project-workflow >/dev/null 2>&1
+  check "Git Bash install makes a junction per skill" \
+    "$(cmd //c dir "$(cygpath -w "$HOME/.agents/skills")" | grep -c '<JUNCTION>')" "$expected"
+  "$install" project-workflow --uninstall >/dev/null 2>&1
+  check "Git Bash uninstall leaves the skill folders intact" \
+    "$(find "$skills" -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')" "$expected"
+else
+  echo "ok - # skip junction checks (not Windows Git Bash)"
+fi
 
 # no plugin named
 new_home
