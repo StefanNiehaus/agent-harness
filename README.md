@@ -51,6 +51,27 @@ Each skill appends lessons to a `learnings.md` in its own folder. With the symli
 your clone, so the lessons stay and you can commit them. With the marketplace install it is Claude's plugin
 cache, which is replaced when the plugin updates.
 
+### On Windows
+
+Without Developer Mode, Git Bash's `ln -s` quietly **copies** each skill folder instead of linking it, so
+your edits and lessons never reach the clone. Check after installing: `bin/install` must say `present` on a
+second run. Two ways to get real links:
+
+- **Directory junctions** (no admin, no Developer Mode). From PowerShell in the clone, for an agent's skill
+  folder (here Claude Code's):
+
+  ```powershell
+  Get-ChildItem plugins\project-workflow\skills -Directory | ForEach-Object {
+    New-Item -ItemType Junction -Path "$HOME\.claude\skills\$($_.Name)" -Target $_.FullName }
+  ```
+
+  `bin/install` recognizes these as its own links, so `--uninstall` removes them.
+- **Developer Mode** (Settings → System → For developers), then run `bin/install` with
+  `MSYS=winsymlinks:nativestrict` set, which makes Git Bash fail loudly instead of copying.
+
+Do not install from WSL for a Windows agent: links made inside WSL may not resolve for Windows programs. To
+run the tests on Windows, see [`AGENTS.md`](AGENTS.md).
+
 ## After installing
 
 Each plugin's README says how to switch it on for a repo. `project-workflow` needs a small config file per
