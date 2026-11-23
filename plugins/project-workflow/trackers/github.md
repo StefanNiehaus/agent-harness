@@ -10,11 +10,18 @@ tracker: github
 github:
   repo: octo-org/octo-repo   # required: owner/name
   account: octocat           # optional: act as this gh account
+  labels: [repo:my-service]  # optional: labels that scope this repo's tickets in a shared tracker repo
 ```
 
 **Every call** passes `-R <github.repo>`. When `github.account` is set, prefix every call with
 `GH_TOKEN=$(gh auth token --user <github.account>)` so the right account is used even when another is active.
 Credentials are `gh`'s own login (`gh auth login`); nothing else is needed.
+
+**Shared tracker repo.** Several code repos can point `github.repo` at one issues-only repo. Each then sets
+`github.labels` (usually one `repo:<name>` label) so its tickets stay apart: `cut` adds every configured label,
+and the many-ticket `read-ticket` list filters by them. Reading one ticket by number and `list-children` need no
+filter, since a project's root already belongs to this repo. The labels must exist in the tracker repo; a `cut`
+that fails on a missing label stops and names it rather than creating it.
 
 ## `key-format`
 
@@ -43,8 +50,10 @@ gh issue view <n> -R <repo> --json number,title,state,stateReason,labels,parent
 Many tickets: one list call, then pick the numbers you need from the result.
 
 ```bash
-gh issue list -R <repo> --state all --limit 500 --json number,title,state,stateReason,labels,parent
+gh issue list -R <repo> --state all --limit 500 [--label <label>…] --json number,title,state,stateReason,labels,parent
 ```
+
+Pass one `--label` per entry in `github.labels`, when set.
 
 `--limit` is the pagination: raise it when the result has exactly that many rows. Status is `state` plus the
 `pw:` labels (see `status-map`); resolution is `stateReason` (`COMPLETED`, `NOT_PLANNED`, or empty while open).
@@ -63,10 +72,10 @@ REST fallback for an older `gh`: `gh api repos/<repo>/issues/<n>/sub_issues --pa
 ## `cut`
 
 ```bash
-gh issue create -R <repo> --title "<title>" --body-file <file> [--parent <n>] [--label bug]
+gh issue create -R <repo> --title "<title>" --body-file <file> [--parent <n>] [--label bug] [--label <label>…]
 ```
 
-Type `bug` adds the `bug` label; type `task` adds none. Omit `--parent` for a standalone ticket. The command
+Type `bug` adds the `bug` label; type `task` adds none. Add one `--label` per entry in `github.labels`, when set. Omit `--parent` for a standalone ticket. The command
 prints the new issue's URL; its last path segment is the number.
 
 ## `reparent`

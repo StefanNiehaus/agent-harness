@@ -21,7 +21,11 @@ done: owner
 github:
   repo: octo-org/octo-repo      # owner/name of the repo whose issues are the tickets
   account: octocat              # optional: the gh account to act as, when several are logged in
+  labels: [repo:octo-repo]      # optional: labels this repo's tickets carry in a shared tracker repo
 ```
+
+To track many code repos in one issues-only repo, point each one's `github.repo` at it and give each its own
+`labels` (see "Shared tracker repo" in `trackers/github.md`).
 
 ## Jira
 
