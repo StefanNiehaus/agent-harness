@@ -18,6 +18,7 @@ import datetime
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import unicodedata
@@ -89,7 +90,7 @@ def tsv(value):
 def width_of(text):
     n = 0
     for ch in text:
-        if unicodedata.combining(ch) or "︀" <= ch <= "️" or ch == "‍":
+        if unicodedata.combining(ch) or "\ufe00" <= ch <= "\ufe0f" or ch == "\u200d":
             continue
         n += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
     return n
@@ -258,16 +259,16 @@ def today():
     return datetime.date.fromisoformat(pinned) if pinned else datetime.date.today()
 
 
-def dispatch(row, folder, tracker, recipe):
+def dispatch(row, project_name, tracker, recipe):
     """Status, skill, line and pick choices for one row, from its chip and State clause only."""
     def line(skill):
-        return f"{skill} {folder}, {row['id']} — first read the tracker at {tracker}"
+        return f"{skill} {project_name}, {row['id']} — first read the tracker at {tracker}"
 
     if row["chip"] in NO_LINE_CHIPS:
-        return {"status": "none", "skill": None, "line": None, "choices": []}
+        return {"status": "none", "skill": None, "line": None, "choices": [], "choice_lines": []}
     named = skills_in(row["clause"])
     if named:
-        return {"status": "line", "skill": named[0], "line": line(named[0]), "choices": []}
+        return {"status": "line", "skill": named[0], "line": line(named[0]), "choices": [], "choice_lines": []}
     choices = list(dict.fromkeys(recipe))
     return {"status": "pick", "skill": None, "line": None, "choices": choices,
             "choice_lines": [line(s) for s in choices]}
@@ -361,15 +362,7 @@ def items(data):
 
 
 def term_width(given):
-    if given:
-        return given
-    cols = os.environ.get("COLUMNS", "")
-    if cols.isdigit() and int(cols) > 0:
-        return int(cols)
-    try:
-        return os.get_terminal_size(sys.stdout.fileno()).columns
-    except OSError:
-        return 100
+    return given or shutil.get_terminal_size((100, 24)).columns
 
 
 def show(data, width):
@@ -411,7 +404,7 @@ def find_row(data, row_id):
     for row in board["rows"]:
         if row["id"].lower() == row_id.lower():
             return row
-    if row_id in board["queue"]["handles"]:
+    if row_id.lower() in (h.lower() for h in board["queue"]["handles"]):
         raise Exit(4, f"{row_id} is an unnumbered Queue handle: it gets a dispatch line once it starts and "
                       f"takes a number")
     ids = ", ".join(r["id"] for r in board["rows"])
