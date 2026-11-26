@@ -26,6 +26,7 @@ Columns: Entry = the recipe up to /ce-plan (`/ce-brainstorm → /ce-plan`, or `/
 (`/ce-compound` or `—`). /ce-work runs between them for every row, so it has no column. Optional columns after
 Deliverable: `Repo` (cross-repo projects), `Phase`. Tracker (the ticket's own status) and State are different
 facts: keep both.
+A dispatchable row's State clause names its next skill in backticks, as in the row below.
 -->
 
 | D | Ticket | Deliverable (plain English) | Entry | Exit | Tracker | State |

@@ -75,6 +75,8 @@ ticket keys, never `D4`.
 **Status chips** (one vocabulary everywhere): ⬜ not started · 🟡 in progress / in review · 🟢 done / deployed · 🔴
 blocked / gated · ⚪ folded / absorbed (with pointer) · ❌ cancelled / won't do. A status lives only in its table
 cell. Cell grammar: `<chip> [<done>/<total>] [— <short clause, ≤ ~12 words>]`.
+A row that can be dispatched names its next skill in backticks in that clause (``🟡 — plan ready, awaiting
+`/ce-work` ``); the board derives its dispatch line from it, and a clause that names no skill gets no derived line.
 
 **Routing new work:** fits a started deliverable → a `Bn` row in its detail (or its Queue group); a new outcome →
 a Queue line in `decomposition.md`; a small one-PR fix that fits nothing → a ladder's queue; not actionable here →

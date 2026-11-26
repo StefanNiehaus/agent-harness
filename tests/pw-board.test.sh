@@ -146,6 +146,8 @@ has "the raw template's placeholder date reads as never verified" "$out" "verifi
 lacks "the template's <handle> Queue line is not listed" "$out" "<handle>"
 rawjson=$("$reader" json "$raw")
 check "the template's none-open line yields no decisions" "$(printf '%s\n' "$rawjson" | jq_ "len(d['board']['decisions'])")" 0
+check "the template's example row names its next skill" \
+  "$(row "$rawjson" D1 status) $(row "$rawjson" D1 skill)" "line /ce-work"
 
 # ---- old shape ----
 old="$work/old-shape"
