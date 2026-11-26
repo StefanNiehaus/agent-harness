@@ -27,7 +27,7 @@ SCHEMA = "pw-board/1"
 CHIP_RE = re.compile("(⬜|🟡|🟢|🔴|⚪|❌)")
 NO_LINE_CHIPS = {"🟢", "⚪", "❌"}
 SHAPE_RE = re.compile(r"Shape:\s*project-workflow/v1\b")
-SKILL_RE = re.compile(r"/[A-Za-z][\w:.-]*")
+SKILL_RE = re.compile(r"(?<![^\s])/[A-Za-z][\w:.-]*")
 CODE_RE = re.compile(r"`([^`]*)`")
 ROOT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*-\d+")
 

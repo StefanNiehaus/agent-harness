@@ -38,10 +38,10 @@ for line in open(sys.argv[1], encoding="utf-8"):
     m = re.match(r"\s*(?:import|from)\s+([\w.]+)", line)
     if m:
         mods.add(m.group(1).split(".")[0])
-print(" ".join(sorted(m for m in mods if m not in sys.stdlib_module_names)))
+print(" ".join(sorted(m for m in mods if m not in sys.stdlib_module_names)) or "stdlib only")
 PY
 )
-check "the reader imports only the standard library" "$third" ""
+check "the reader imports only the standard library" "$third" "stdlib only"
 
 # ---- dispatch lines ----
 out=$("$reader" line "$fx" D3); rc=$?
@@ -56,6 +56,8 @@ done
 
 check "a blocked row naming a skill gets a line" "$("$reader" line "$fx" D5)" "$(line_for /ce-work D5)"
 check "a clause naming two skills takes the first" "$("$reader" line "$fx" D6)" "$(line_for /ce-code-review D6)"
+"$reader" line "$fx" D7 >/dev/null
+check "a backticked path in a clause is not a skill (exit 3)" "$?" 3
 
 out=$("$reader" line "$fx" D1:B3); rc=$?
 check "a row with no skill in its clause exits 3" "$rc" 3
@@ -79,7 +81,7 @@ check "D1 without a skill has status pick" "$(row "$json" D1 status)" pick
 check "D1 keeps its roll-up" "$(row "$json" D1 rollup)" 1/3
 check "D1:B2 has D1 as parent" "$(row "$json" D1:B2 parent)" D1
 check "rows keep board order with sub-deliverables under their parent" \
-  "$(printf '%s\n' "$json" | jq_ "','.join(r['id'] for r in d['board']['rows'])")" "D1,D1:B1,D1:B2,D1:B3,D2,D3,D4,D5,D6"
+  "$(printf '%s\n' "$json" | jq_ "','.join(r['id'] for r in d['board']['rows'])")" "D1,D1:B1,D1:B2,D1:B3,D2,D3,D4,D5,D6,D7"
 check "the queue lists handles in order, skipping placeholders and comments" \
   "$(printf '%s\n' "$json" | jq_ "','.join(d['board']['queue']['handles'])")" "retry-backoff,export-csv"
 check "verified date and age" "$(printf '%s\n' "$json" | jq_ "d['board']['verified'], d['board']['verified_age_days']")" "2026-11-22 4"
@@ -104,10 +106,11 @@ glance=$("$reader" show "$fx" --width 100)
 has "the glance says it is raw file state" "$glance" "RAW FILE"
 has "the glance shows the verified date and age" "$glance" "verified 2026-11-22 (4d ago)"
 has "the glance shows the critical path" "$glance" "D1 → D3"
-for id in D1 D1:B1 D1:B2 D1:B3 D2 D3 D4 D5 D6; do
-  printf '%s\n' "$glance" | grep -qE "^ *[^ ]+ $id " || not_ok "the glance lists $id" "$glance"
+missing=""
+for id in D1 D1:B1 D1:B2 D1:B3 D2 D3 D4 D5 D6 D7; do
+  printf '%s\n' "$glance" | grep -qE "^ *[^ ]+ $id " || missing="$missing $id"
 done
-ok "the glance lists every row id"
+check "the glance lists every row id" "$missing" ""
 has "the glance shows the first next action" "$glance" "D3 — run the plan"
 has "the glance shows the second next action" "$glance" "D1:B3 — start once B2 merges"
 has "the glance shows the Queue count" "$glance" "2 waiting: retry-backoff, export-csv"

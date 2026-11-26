@@ -29,6 +29,7 @@ Columns: Entry = the recipe up to /ce-plan. | D9 | <KEY> | guidance | `/ce-plan`
 | D4 | GH-16 | Settings screen | `/ce-plan` | `—` | Done | 🟢 — #41 |
 | D5 | GH-17 | Conflict banner in the app | `/ce-plan` | `—` | To Do | 🔴 — gated on D1, then `/ce-work` |
 | D6 | GH-18 | Export every synced record to a portable archive that other tools can import without any loss of history or ordering | `/ce-plan` | `—` | In Review | 🟡 — fix review with `/ce-code-review`, then `/ce-commit` |
+| D7 | GH-19 | Import from the legacy store | `/ce-plan` | `—` | In Progress | 🟡 — waiting on `docs/plans/import.md` |
 
 **Project-level tickets** (not deliverables): GH-12 — root.
 
