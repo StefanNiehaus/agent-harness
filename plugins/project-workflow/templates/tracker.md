@@ -62,7 +62,7 @@ Dispatch each item with the formula in the rules doc; its bridge below is the co
 
 Decided entries → `archive/decisions.md` once amended into their owning surface.
 
-- _(none open)_ · <or: **<question> — open (<who>, gates `<handle>`):** <frame> → `briefs/<id>-<topic>.html`.>
+- _(none open)_ · <or: **<question> — open (<who>, gates `<handle>`):** <frame> → `briefs/<id>-<topic>.md`.>
 
 ---
 

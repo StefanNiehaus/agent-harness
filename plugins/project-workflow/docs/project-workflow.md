@@ -51,7 +51,7 @@ scratch/<KEY>-<short-name>/        # root key exactly as the tracker's op sheet 
 ├── ladders/<NAME>.md        # one named queue of small one-PR fixes under one umbrella ticket
 ├── docs/                    # plans/ ideation/ reviews/ · brainstorms/ (legacy, read-only)
 │                            #   depth notes: concept- grounding- findings- future- (no other prefixes)
-├── briefs/<id>-<topic>.html # HTML decision briefs for the owner (`/pw-brief`)
+├── briefs/<id>-<topic>.md   # markdown decision briefs for the owner (`/pw-brief`); older `.html` ones stay readable
 ├── proof/<id>-<topic>/      # one verification: README.md · harness/ · inputs/ · runs/<run>/
 └── archive/                 # decisions.md · maintenance-log.md · messages.md · <file>-<YYYY-MM-DD>-<reason>.md
 ```
