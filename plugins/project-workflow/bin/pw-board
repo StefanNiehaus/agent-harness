@@ -1,0 +1,484 @@
+#!/usr/bin/env python3
+# Read a project's tracker and print its board. Read-only: runs no agent and writes nothing.
+#
+#   pw-board projects                     TSV: folder, root, title, shape (v1|old), tracker path; newest first
+#   pw-board show [<project>] [--width N] the glance: rows, critical path, next actions, Queue, open decisions
+#   pw-board rows [<project>]             TSV: id, kind, chip, status (line|pick|none), line, brief path, label
+#   pw-board line <project> <id>          the dispatch line for one row (D3, D1:B2)
+#   pw-board json [<project>]             the whole board as JSON ("schema": "pw-board/1")
+#
+#   --repo <dir>   find projects through this repo's main checkout instead of the current directory's
+#
+# <project> is a project folder or tracker.md path, a folder name, or a root key (GH-12). With no project and
+# exactly one in the repo, that one is used. The board is the raw file state, not reconciled against tickets.
+# Exit codes: 0 ok · 1 old-shape tracker, no board · 2 usage or no single matching project ·
+# 3 `line` on a row whose next skill must be picked (one candidate line per skill on stdout) ·
+# 4 `line` on a row with no dispatch line (done, folded, cancelled, or a Queue handle).
+import datetime
+import json
+import os
+import re
+import subprocess
+import sys
+import unicodedata
+
+SCHEMA = "pw-board/1"
+CHIP_RE = re.compile("(⬜|🟡|🟢|🔴|⚪|❌)")
+NO_LINE_CHIPS = {"🟢", "⚪", "❌"}
+SHAPE_RE = re.compile(r"Shape:\s*project-workflow/v1\b")
+SKILL_RE = re.compile(r"/[A-Za-z][\w:.-]*")
+CODE_RE = re.compile(r"`([^`]*)`")
+ROOT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9]*-\d+")
+
+
+class Exit(Exception):
+    def __init__(self, code, message=""):
+        super().__init__(message)
+        self.code, self.message = code, message
+
+
+def usage():
+    with open(os.path.realpath(__file__), encoding="utf-8") as f:
+        lines = f.read().splitlines()[1:]
+    out = []
+    for line in lines:
+        if not line.startswith("#"):
+            break
+        out.append(line[2:])
+    return "\n".join(out)
+
+
+# ---- text helpers ----
+
+def plain(text):
+    text = re.sub(r"\*\*|__|`", "", text)
+    text = re.sub(r"^_\((.*)\)_$", r"\1", text.strip())
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def uncomment(text):
+    return re.sub(r"<!--.*?-->", "", text, flags=re.S)
+
+
+def section(lines, heading):
+    """The lines under `## <heading…>`, up to the next `## ` heading or a `---` rule."""
+    for i, line in enumerate(lines):
+        if line.startswith("## " + heading):
+            out = []
+            for rest in lines[i + 1:]:
+                if rest.startswith("## ") or rest.strip() == "---":
+                    break
+                out.append(rest)
+            return out
+    return []
+
+
+def cells(line):
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def skills_in(text):
+    """Backticked /skill tokens, in order."""
+    return [s for code in CODE_RE.findall(text) for s in SKILL_RE.findall(code)]
+
+
+def tsv(value):
+    return re.sub(r"[\t\r\n]+", " ", str(value))
+
+
+def width_of(text):
+    n = 0
+    for ch in text:
+        if unicodedata.combining(ch) or "︀" <= ch <= "️" or ch == "‍":
+            continue
+        n += 2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1
+    return n
+
+
+def cut(text, width):
+    """Text cut with … so it takes at most `width` display columns."""
+    if width_of(text) <= width:
+        return text
+    out, used = "", 0
+    for ch in text:
+        w = width_of(ch)
+        if used + w > width - 1:
+            break
+        out, used = out + ch, used + w
+    return out + "…" if width > 0 else ""
+
+
+def spread(left, right, width):
+    """`left` cut to fit, then `right` flush against the right edge."""
+    if not right:
+        return cut(left, width)
+    room = width - width_of(right) - 1
+    left = cut(left, room)
+    return left + " " * (width - width_of(left) - width_of(right)) + right
+
+
+# ---- project resolution ----
+
+def main_checkout(repo):
+    try:
+        out = subprocess.run(["git", "-C", repo, "worktree", "list", "--porcelain"],
+                             capture_output=True, text=True, check=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        raise Exit(2, f"{repo} is not inside a git repo: pass a project folder or tracker path, or --repo <dir>")
+    first = out.splitlines()[0] if out else ""
+    if not first.startswith("worktree "):
+        raise Exit(2, f"could not find the main checkout of {repo}")
+    return first[len("worktree "):]
+
+
+def all_projects(repo):
+    scratch = os.path.join(main_checkout(repo), "scratch")
+    found = []
+    if os.path.isdir(scratch):
+        for name in os.listdir(scratch):
+            tracker = os.path.join(scratch, name, "tracker.md")
+            if os.path.isfile(tracker):
+                found.append(os.path.join(scratch, name))
+    return sorted(found, key=lambda p: os.path.getmtime(os.path.join(p, "tracker.md")), reverse=True)
+
+
+def resolve(arg, repo):
+    if arg and os.path.isfile(arg) and os.path.basename(arg) == "tracker.md":
+        return os.path.dirname(os.path.abspath(arg))
+    if arg and os.path.isfile(os.path.join(arg, "tracker.md")):
+        return os.path.abspath(arg)
+    projects = all_projects(repo)
+    if arg is None:
+        matches = projects
+    else:
+        matches = [p for p in projects if os.path.basename(p) == arg]
+        if not matches:
+            key = arg.lower() + "-"
+            matches = [p for p in projects if os.path.basename(p).lower().startswith(key)]
+    if len(matches) == 1:
+        return matches[0]
+    what = "no project" if not matches else "several projects"
+    asked = f" matches {arg}" if arg else " found"
+    listing = "\n".join("  " + os.path.basename(p) for p in (matches or projects))
+    raise Exit(2, f"{what}{asked}; name one of:\n{listing}" if listing else f"{what}{asked} under scratch/")
+
+
+# ---- parsing ----
+
+def parse_state(cell):
+    found = CHIP_RE.search(cell)
+    chip = found.group(1) if found else "⬜"
+    rest = cell[found.end():] if found else cell
+    rollup = re.match(r"\s*(\d+/\d+)", rest)
+    dash = rest.find("—")
+    clause = rest[dash + 1:] if dash >= 0 else ""
+    return chip, rollup.group(1) if rollup else None, clause
+
+
+def board_rows(lines):
+    lines = section(lines, "Status board")
+    head = next((i for i, l in enumerate(lines) if re.match(r"^\|\s*D\s*\|", l)), None)
+    if head is None:
+        return []
+    names = [n.lower() for n in cells(lines[head])]
+
+    def col(prefix):
+        return next((i for i, n in enumerate(names) if n == prefix or n.startswith(prefix + " ")), None)
+
+    idx = {k: col(k) for k in ("d", "ticket", "deliverable", "entry", "exit", "state")}
+    rows = []
+    for line in lines[head + 2:]:
+        if not line.strip().startswith("|"):
+            break
+        c = cells(line)
+
+        def get(key):
+            i = idx[key]
+            return c[i] if i is not None and i < len(c) else ""
+
+        chip, rollup, clause = parse_state(get("state"))
+        rows.append({"id": plain(get("d")), "parent": None, "kind": "deliverable", "ticket": plain(get("ticket")),
+                     "what": plain(get("deliverable")), "chip": chip, "rollup": rollup, "clause": clause,
+                     "recipe": skills_in(get("entry")) + ["/ce-work"] + skills_in(get("exit"))})
+    return rows
+
+
+def sub_rows(lines):
+    """Sub-deliverables from the `| B |` table inside each `### D<n> — …` detail heading."""
+    subs, parent, in_table = {}, None, False
+    for line in lines:
+        m = re.match(r"^###\s+(D\d+)\b", line)
+        if m or line.startswith("## "):
+            parent, in_table = (m.group(1) if m else None), False
+            continue
+        if parent is None:
+            continue
+        if re.match(r"^\|\s*B\s*\|", line):
+            in_table = True
+            continue
+        if in_table:
+            if not line.strip().startswith("|"):
+                in_table = False
+                continue
+            c = cells(line)
+            if not re.match(r"^B\d+$", plain(c[0])):
+                continue
+            chip, rollup, clause = parse_state(c[2] if len(c) > 2 else "")
+            subs.setdefault(parent, []).append({
+                "id": f"{parent}:{plain(c[0])}", "parent": parent, "kind": "sub", "ticket": "",
+                "what": plain(c[1]) if len(c) > 1 else "", "chip": chip, "rollup": rollup, "clause": clause})
+    return subs
+
+
+def decisions(lines, folder):
+    out = []
+    for line in section(lines, "Open decisions"):
+        if not line.startswith("- ") or line.startswith("- ~~") or line.startswith("- _(none open)_"):
+            continue
+        brief = re.search(r"`(briefs/[^`]+\.(?:md|html))`", line)
+        text = plain(line[2:].split(" → ")[0])
+        text = re.sub(r"\s+—\s+open\s*\([^)]*\)", "", text).rstrip(":.")
+        path = os.path.join(folder, brief.group(1)) if brief else None
+        out.append({"text": text, "brief": brief.group(1) if brief else None, "brief_path": path,
+                    "exists": bool(path and os.path.isfile(path))})
+    return out
+
+
+def queue(folder):
+    path = os.path.join(folder, "decomposition.md")
+    if not os.path.isfile(path):
+        return []
+    with open(path, encoding="utf-8") as f:
+        lines = uncomment(f.read()).splitlines()
+    return [m.group(1) for m in (re.match(r"^- `([^`<>]+)`", l) for l in section(lines, "Queue")) if m]
+
+
+def today():
+    pinned = os.environ.get("PW_BOARD_TODAY")
+    return datetime.date.fromisoformat(pinned) if pinned else datetime.date.today()
+
+
+def dispatch(row, folder, tracker, recipe):
+    """Status, skill, line and pick choices for one row, from its chip and State clause only."""
+    def line(skill):
+        return f"{skill} {folder}, {row['id']} — first read the tracker at {tracker}"
+
+    if row["chip"] in NO_LINE_CHIPS:
+        return {"status": "none", "skill": None, "line": None, "choices": []}
+    named = skills_in(row["clause"])
+    if named:
+        return {"status": "line", "skill": named[0], "line": line(named[0]), "choices": []}
+    choices = list(dict.fromkeys(recipe))
+    return {"status": "pick", "skill": None, "line": None, "choices": choices,
+            "choice_lines": [line(s) for s in choices]}
+
+
+def load(folder):
+    tracker = os.path.join(folder, "tracker.md")
+    with open(tracker, encoding="utf-8") as f:
+        raw = f.read()
+    name = os.path.basename(folder)
+    text = uncomment(raw)
+    title = re.search(r"^#\s+(.+?)\s+—\s+Project Tracker\s+\((.+?)\)\s*$", text, re.M)
+    first = re.search(r"^#\s+(.+)$", text, re.M)
+    root = ROOT_RE.match(name)
+    project = {
+        "folder": name,
+        "root": root.group(0) if root else (plain(title.group(2)) if title else ""),
+        "title": plain(title.group(1)) if title else plain(first.group(1)) if first else name,
+        "tracker": tracker,
+        "decomposition": os.path.join(folder, "decomposition.md"),
+        "tracker_mtime": datetime.datetime.fromtimestamp(os.path.getmtime(tracker)).isoformat(timespec="seconds"),
+    }
+    if not SHAPE_RE.search(raw):
+        reason = (f"⚠️ {tracker} is an old-shape tracker (no `Shape: project-workflow/v1` line). Old trackers are "
+                  f"not migrated. Next step: `/pw-land {name} close` — it proposes ticket-or-drop for the open "
+                  f"work, waits for your approval, then archives the folder.")
+        return {"schema": SCHEMA, "project": project, "board": None, "reason": reason}
+
+    lines = text.splitlines()
+    verified = re.search(r"Tracker verified (\d{4}-\d{2}-\d{2})", text)
+    age = None
+    if verified:
+        try:
+            age = (today() - datetime.date.fromisoformat(verified.group(1))).days
+        except ValueError:
+            verified = None
+    critical = re.search(r"\*\*Critical path:\*\*\s*(.+?)\.?\s*$", text, re.M)
+    subs = sub_rows(lines)
+    rows = []
+    for row in board_rows(lines):
+        recipe = row.pop("recipe")
+        rows.append({**row, **dispatch(row, name, tracker, recipe)})
+        for sub in subs.get(row["id"], []):
+            rows.append({**sub, **dispatch(sub, name, tracker, recipe)})
+    for row in rows:
+        row["clause"] = plain(row["clause"])
+    handles = queue(folder)
+    next_actions = [plain(m.group(1)).rstrip(".")
+                    for m in (re.match(r"^\d+\.\s+(.*)$", l) for l in section(lines, "Next actions")) if m]
+    return {"schema": SCHEMA, "project": project, "raw": True, "board": {
+        "verified": verified.group(1) if verified else None,
+        "verified_age_days": age,
+        "critical_path": plain(critical.group(1)) if critical else None,
+        "rows": rows,
+        "next_actions": next_actions,
+        "queue": {"count": len(handles), "handles": handles},
+        "decisions": decisions(lines, folder),
+    }}
+
+
+def board_or_exit(folder):
+    data = load(folder)
+    if data["board"] is None:
+        raise Exit(1, data["reason"])
+    return data
+
+
+# ---- output ----
+
+def marker(row):
+    return row["skill"] if row["status"] == "line" else "?" if row["status"] == "pick" else ""
+
+
+def row_text(row):
+    indent = "   " if row["kind"] == "sub" else ""
+    return f"{indent}{row['chip']} {row['id']:<6} {row['rollup'] or '':>4}  {row['what']}"
+
+
+def items(data):
+    """Every selectable item: board rows, then Queue handles, then open decisions."""
+    board = data["board"]
+    for row in board["rows"]:
+        yield {"id": row["id"], "kind": row["kind"], "chip": row["chip"], "status": row["status"],
+               "line": row["line"] or "", "brief": "", "label": f"{row_text(row).strip()}  {marker(row)}".rstrip()}
+    for handle in board["queue"]["handles"]:
+        yield {"id": handle, "kind": "queue", "chip": "", "status": "none", "line": "", "brief": "",
+               "label": f"queued  {handle}"}
+    for n, d in enumerate(board["decisions"], 1):
+        yield {"id": f"decision-{n}", "kind": "decision", "chip": "", "status": "none", "line": "",
+               "brief": d["brief_path"] or "", "label": f"needs you  {d['text']}"}
+
+
+def term_width(given):
+    if given:
+        return given
+    cols = os.environ.get("COLUMNS", "")
+    if cols.isdigit() and int(cols) > 0:
+        return int(cols)
+    try:
+        return os.get_terminal_size(sys.stdout.fileno()).columns
+    except OSError:
+        return 100
+
+
+def show(data, width):
+    p, b = data["project"], data["board"]
+    head = f"{p['title']} ({p['root']})" if p["root"] else p["title"]
+    seen = (f"verified {b['verified']} ({b['verified_age_days']}d ago)" if b["verified"]
+            else "verified: never")
+    stamp = f"RAW FILE · {seen} · tracker edited {p['tracker_mtime'][:10]}"
+    if width_of(head) + width_of(stamp) + 2 <= width:
+        out = [spread(head, stamp, width)]
+    else:
+        out = [cut(head, width), cut(stamp, width)]
+    out.append(cut(f"Critical path  {b['critical_path'] or '—'}", width))
+    for row in b["rows"]:
+        out.append(spread(row_text(row), marker(row), width))
+    label = "Next      "
+    for n, action in enumerate(b["next_actions"], 1):
+        out.append(cut(f"{label}{n}. {action}", width))
+        label = " " * 10
+    q = b["queue"]
+    if q["count"]:
+        more = ", …" if q["count"] > 3 else ""
+        out.append(cut(f"Queue     {q['count']} waiting: {', '.join(q['handles'][:3])}{more}", width))
+    else:
+        out.append("Queue     empty")
+    label = "Needs you "
+    for d in b["decisions"]:
+        pointer = ""
+        if d["brief"]:
+            pointer = f" → {d['brief']}" + ("" if d["exists"] else " (missing)")
+        room = width - width_of(label) - width_of(pointer)
+        out.append(label + cut(d["text"], room) + pointer if room > 1 else cut(label + d["text"] + pointer, width))
+        label = " " * 10
+    return "\n".join(out)
+
+
+def find_row(data, row_id):
+    board = data["board"]
+    for row in board["rows"]:
+        if row["id"].lower() == row_id.lower():
+            return row
+    if row_id in board["queue"]["handles"]:
+        raise Exit(4, f"{row_id} is an unnumbered Queue handle: it gets a dispatch line once it starts and "
+                      f"takes a number")
+    ids = ", ".join(r["id"] for r in board["rows"])
+    raise Exit(2, f"no row {row_id} in {data['project']['folder']}; rows: {ids}")
+
+
+def main(argv):
+    args, repo, width = [], ".", None
+    it = iter(argv)
+    for a in it:
+        if a in ("-h", "--help"):
+            print(usage())
+            return 0
+        if a in ("--repo", "--width"):
+            value = next(it, None)
+            if value is None:
+                raise Exit(2, f"{a} needs a value\n\n{usage()}")
+            if a == "--repo":
+                repo = value
+            elif value.isdigit() and int(value) > 0:
+                width = int(value)
+            else:
+                raise Exit(2, f"--width takes a positive number, not {value}")
+        else:
+            args.append(a)
+    if not args:
+        raise Exit(2, usage())
+    cmd, rest = args[0], args[1:]
+    limits = {"projects": (0, 0), "show": (0, 1), "rows": (0, 1), "json": (0, 1), "line": (2, 2)}
+    if cmd not in limits or not limits[cmd][0] <= len(rest) <= limits[cmd][1]:
+        raise Exit(2, usage())
+
+    if cmd == "projects":
+        for folder in all_projects(repo):
+            data = load(folder)
+            p = data["project"]
+            shape = "old" if data["board"] is None else "v1"
+            print("\t".join(tsv(v) for v in (p["folder"], p["root"], p["title"], shape, p["tracker"])))
+        return 0
+
+    folder = resolve(rest[0] if rest else None, repo)
+    if cmd == "json":
+        data = load(folder)
+        print(json.dumps(data, ensure_ascii=False, indent=2))
+        return 1 if data["board"] is None else 0
+    data = board_or_exit(folder)
+    if cmd == "show":
+        print(show(data, term_width(width)))
+    elif cmd == "rows":
+        for item in items(data):
+            print("\t".join(tsv(item[k]) for k in ("id", "kind", "chip", "status", "line", "brief", "label")))
+    elif cmd == "line":
+        row = find_row(data, rest[1])
+        if row["status"] == "line":
+            print(row["line"])
+        elif row["status"] == "pick":
+            print("\n".join(row["choice_lines"]))
+            return 3
+        else:
+            raise Exit(4, f"{row['id']} is {row['chip']}: no dispatch line")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except Exit as e:
+        if e.message:
+            print(e.message, file=sys.stderr)
+        sys.exit(e.code)
