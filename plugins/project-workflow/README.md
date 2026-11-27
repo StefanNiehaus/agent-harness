@@ -19,9 +19,11 @@ them into a session: each skill reads them when it starts, and every tracker fil
 **Optional, Claude Code only:** the [`pw-board` mod](mod/) shows a project's tracker beside the chat as a board,
 with a one-line summary above the prompt and a card under each brief. The skills work without it.
 
-**Optional, Claude Code only:** the plugin's session-start hook tells `/pw-brief` whether the session is a terminal
-one: markdown in a terminal or tmux, HTML in the desktop app, IDE or web. Without it `/pw-brief` uses
-`brief_format` from the repo config (`auto|md|html`, see [`docs/config.md`](docs/config.md)), else markdown.
+**Optional, Claude Code only:** when the plugin is installed as a Claude Code plugin (not through `bin/install`),
+its session-start hook tells `/pw-brief` whether the session is a terminal one: markdown in a terminal or tmux,
+HTML in the desktop app, IDE or web. `brief_format: md` or `html` in the repo config (see
+[`docs/config.md`](docs/config.md)) pins the format either way; without the hook and a pinned value, briefs are
+markdown. Asking for a format always wins.
 
 ## Using it day to day
 

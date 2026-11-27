@@ -20,7 +20,7 @@ description: Use when the user or an agent wants a decision brief for the projec
    1. The prompt explicitly asks for a format (markdown or md; HTML or a page) → that format.
    2. Revising an existing brief (same `<id>-<topic>`, either extension) → keep its format.
    3. Repo config `brief_format` (read as in Start step 3, the local file overriding) is `md` or `html` → that format. `auto` or unset falls through.
-   4. The session's context holds a line reading exactly `project-workflow brief format: md` or `project-workflow brief format: html` → that format.
+   4. The session's context holds a line containing `project-workflow brief format: md` or `project-workflow brief format: html` → that format.
    5. Otherwise markdown.
 3. **Name the file** `briefs/<id>-<topic>.md` or `briefs/<id>-<topic>.html` per the format: `<id>` is the ticket key or task id the brief serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
 4. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state. A revision keeps the existing format unless the prompt explicitly asks to switch. On a switch, read the old file, carry every decided pick into the new-format file, and delete the old file once the new one is written. Never keep both extensions of one brief.
