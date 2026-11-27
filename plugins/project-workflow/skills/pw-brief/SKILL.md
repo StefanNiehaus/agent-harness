@@ -1,11 +1,11 @@
 ---
 name: pw-brief
-description: Use when the user or an agent wants a decision brief for the project owner — phrases like "/pw-brief", "write a brief for this", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 brief". Writes one self-contained HTML brief into the project's `briefs/` folder under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same brief, and returns its absolute path.
+description: Use when the user or an agent wants a decision brief for the project owner — phrases like "/pw-brief", "write a brief for this", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 brief". Writes one markdown brief, readable in a terminal, into the project's `briefs/` folder under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same brief, and returns its absolute path.
 ---
 
 # /pw-brief — write a decision brief into `briefs/`
 
-`/pw-brief <project> <id> <topic>`. A brief is one HTML page that puts a decision, a confirmation or a comparison in front of the project owner. The substance comes from the current conversation (the design, options, evidence or decision the brief is for); this skill fixes where it goes and how it reads.
+`/pw-brief <project> <id> <topic>`. A brief is one markdown file, not an HTML page, that puts a decision, a confirmation or a comparison in front of the project owner. The substance comes from the current conversation (the design, options, evidence or decision the brief is for); this skill fixes where it goes and how it reads.
 
 ## Start (every run)
 
@@ -16,30 +16,31 @@ description: Use when the user or an agent wants a decision brief for the projec
 ## Flow
 
 1. **Resolve the project** as `/pw-status` does: `scratch/*/tracker.md` under the main checkout, matched against the argument (name, root key or path). Several or none → list and ask.
-2. **Name the file** `briefs/<id>-<topic>.html`: `<id>` is the ticket key or task id the page serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
-3. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state.
-4. **Write the page** (contract below) and **return its absolute path**. Do not edit the tracker: the bridge, Queue line or open decision that needs the page cites the path itself.
+2. **Name the file** `briefs/<id>-<topic>.md`: `<id>` is the ticket key or task id the brief serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
+3. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state. An older `briefs/<id>-<topic>.html` with the same name is the earlier revision: read it, carry its decided picks into the `.md`, and delete the `.html` once the `.md` is written.
+4. **Write the brief** (contract below) and **return its absolute path**. When it replaced an `.html`, also name that old path, so the caller repoints anything that cites it. Do not edit the tracker: the bridge, Queue line or open decision that needs the brief cites the path itself.
 
-## Page contract
+## Brief contract
 
 - **Decision first.** The top block says what the owner must decide or confirm, and the recommended or decided pick; context comes after.
 - **One line per item.** Options, findings and steps are list items or table rows, one line each; depth links to `docs/` notes or code paths instead of growing paragraphs.
 - **Latest state only.** No revision history, no "previously" sections.
 - **Decided picks stay visible.** A decided item shows `DECIDED <date> (<who>): <pick>` where it was asked, so a reader sees what is settled.
-- **Concrete artifacts beside options.** When comparing options, put a small artifact next to each — a code excerpt, an inline SVG or `<pre>` diagram, a before/after table.
+- **Concrete artifacts beside options.** When comparing options, put a small artifact next to each — a code excerpt, an ASCII diagram in a `text` block, a before/after table.
 
-## HTML rules
+## Markdown rules
 
-- One self-contained file: inline `<style>`, no `<script src>`, no web fonts, no remote images, no network fetches of any kind (pages are opened from disk, often offline). No Mermaid; draw diagrams as inline SVG or `<pre>` text.
-- Reads in light and dark: colors as CSS variables on `:root`, redefined under `@media (prefers-color-scheme: dark)`; explicit `body` background; system font stack.
-- `<title>` is the topic in plain words. A small meta line under the `<h1>`: project root, id, date written.
-- Readable at laptop width and on a phone: `max-width` on the main column, tables in an `overflow-x:auto` wrapper.
+- Plain CommonMark with GFM tables and nothing else: no raw HTML, no images, no Mermaid, no front matter.
+- Line 1 is `# <topic in plain words>`; the next paragraph is a meta line: project root, id, date written.
+- Diagrams are ASCII inside ```` ```text ```` fenced blocks, at most 76 columns wide, drawn only with `+ - | > < v ^ * .`, letters, digits and spaces: no box-drawing characters and no backslashes, so alignment holds in any monospace font and every viewer shows each character.
+- Keep tables to a few narrow columns; move long cell content into list items.
+- Reads well as plain text and in a terminal markdown viewer (for example glow), which does not wrap code blocks.
 
 ## Hard constraints
 
-- Writes only inside the resolved project's `briefs/`.
-- Never commits the page and never copies it into a repo.
+- Writes only inside the resolved project's `briefs/`. The one removal allowed is the `.html` a revision replaces.
+- Never commits the brief and never copies it into a repo.
 
 ## Learnings
 
-When a page breaks the contract, misplaces a file or loses a decided pick on revision, append one dated line to this skill's `learnings.md` in the real skill folder (`### YYYY-MM-DD` then `- Observation. Source: <page path>.`). Only when the class recurs or the user flags a miss.
+When a brief breaks the contract, misplaces a file or loses a decided pick on revision, append one dated line to this skill's `learnings.md` in the real skill folder (`### YYYY-MM-DD` then `- Observation. Source: <brief path>.`). Only when the class recurs or the user flags a miss.
