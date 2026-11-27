@@ -43,8 +43,8 @@ linear:
 | `cancel` | Move to the team's state of type `canceled` and add the reason as a comment. |
 | `status-map` | `backlog` and `unstarted` → ⬜ · `started` → 🟡 · review state or `pw-ready-to-close` label → 🟢 · `completed` → 🟢 · `canceled` → ❌ |
 
-With the sheet saved as `trackers/linear.md` and the config above in a repo, `/pw-open ENG-123` reads the root
-through `read-root` and `/pw-status` reconciles through `read-ticket` and `list-children`. Neither skill file
+With the sheet saved as `trackers/linear.md` and the config above in a repo, `/pw-open <description>` cuts the root
+through `cut` (or `/pw-open ENG-123` reads an existing one through `read-root`) and `/pw-status` reconciles through `read-ticket` and `list-children`. Neither skill file
 changed.
 
 ## What makes a good sheet

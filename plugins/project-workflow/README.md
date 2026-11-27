@@ -8,7 +8,7 @@ work, and four skills keep it honest against your ticket tracker.
 
 | Skill | What it does |
 |---|---|
-| `/pw-open <root> [<short-name>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
+| `/pw-open [<what you want to accomplish>]` | Asks for a short description if you give none, cuts the root ticket from it, creates the project folder from the templates and seeds its queue. `/pw-open <root key>` uses a ticket you already have. |
 | `/pw-status <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
 | `/pw-land <project> <task-id>` | Lands a merged deliverable: flips its row, walks its ticket, cleans up its worktree. `/pw-land <project> close` closes and archives the project. |
 | `/pw-brief <project> <id> <topic>` | Writes a decision brief for the project owner: markdown that reads in the terminal, or a self-contained HTML page outside one. Asking for a format wins. |
@@ -27,8 +27,10 @@ markdown. Asking for a format always wins.
 
 ## Using it day to day
 
-1. **Open a project** from its root ticket: `/pw-open GH-12`. You get `scratch/GH-12-<short-name>/` with a
-   `tracker.md` (what is in flight) and a `decomposition.md` (scope, and a Queue of work not yet started).
+1. **Open a project** with `/pw-open` and describe in brief what you want to accomplish, or your problem, for
+   example `/pw-open add offline sync to the mobile app`. It cuts the root ticket for you (say `GH-12`), and you
+   get `scratch/GH-12-<short-name>/` with a `tracker.md` (what is in flight) and a `decomposition.md` (scope, and
+   a Queue of work not yet started). Already have a root ticket? `/pw-open GH-12` uses it instead.
 2. **Check where things stand** with `/pw-status GH-12`. It reconciles the tracker against your tickets, PRs and
    worktrees and shows each deliverable in plain English, the critical path and the next actions. It changes
    nothing, so run it whenever you come back to the project.
