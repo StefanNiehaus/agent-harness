@@ -11,6 +11,7 @@ It is flat YAML, read directly by the agent. Skills always read it from the **ma
 | `tracker` | `github`, `jira`, or the name of any sheet in `trackers/` | required | Which op sheet the skills use |
 | `done` | `owner`, `agent` | `owner` | Who closes tickets. `owner`: agents advance and comment, never close. `agent`: `/pw-land` and PR bodies may close |
 | `archive_root` | a directory path | `<parent of the main checkout>/project-archive` | Where `/pw-land <project> close` moves a closed project, under `<archive_root>/<repo-name>/` |
+| `brief_format` | `auto`, `md`, `html` | `auto` | Which format `/pw-brief` writes. `md`/`html` pin it; `auto` follows the format the session states, else markdown |
 | `<tracker>:` | a block of that tracker's settings | required | Named after the `tracker` value; its keys are listed in that tracker's op sheet |
 
 ## GitHub
@@ -38,7 +39,7 @@ jira:
 
 An optional `.project-workflow.local.yml` beside the committed file overrides any key for one user. Keep it out
 of git (add it to `.gitignore`). Use it for values that differ per person, such as `archive_root` or
-`github.account`. It also works on its own: a repo with only the local file is opted in for that user.
+`github.account`, or `brief_format` for someone who reads briefs in a browser. It also works on its own: a repo with only the local file is opted in for that user.
 
 ## Credentials
 

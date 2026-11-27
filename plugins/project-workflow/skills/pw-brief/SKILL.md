@@ -1,11 +1,11 @@
 ---
 name: pw-brief
-description: Use when the user or an agent wants a decision brief for the project owner — phrases like "/pw-brief", "write a brief for this", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 brief". Writes one markdown brief, readable in a terminal, into the project's `briefs/` folder under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same brief, and returns its absolute path.
+description: Use when the user or an agent wants a decision brief for the project owner — phrases like "/pw-brief", "write a brief for this", "write a review page for this", "make me a page comparing the options", "put the current vs proposed design on a page", or "update the D2 brief". Writes one brief into the project's `briefs/` folder — markdown in a terminal session, a self-contained HTML page otherwise, and whichever format is explicitly asked for — under the terse contract (decision first, one line per item, latest state only, decided picks stay visible), overwriting an earlier revision of the same brief, and returns its absolute path.
 ---
 
 # /pw-brief — write a decision brief into `briefs/`
 
-`/pw-brief <project> <id> <topic>`. A brief is one markdown file, not an HTML page, that puts a decision, a confirmation or a comparison in front of the project owner. The substance comes from the current conversation (the design, options, evidence or decision the brief is for); this skill fixes where it goes and how it reads.
+`/pw-brief <project> <id> <topic>`. A brief is one file that puts a decision, a confirmation or a comparison in front of the project owner: markdown in a terminal session, a self-contained HTML page otherwise; an explicit request for a format wins. The substance comes from the current conversation (the design, options, evidence or decision the brief is for); this skill fixes where it goes and how it reads.
 
 ## Start (every run)
 
@@ -16,9 +16,15 @@ description: Use when the user or an agent wants a decision brief for the projec
 ## Flow
 
 1. **Resolve the project** as `/pw-status` does: `scratch/*/tracker.md` under the main checkout, matched against the argument (name, root key or path). Several or none → list and ask.
-2. **Name the file** `briefs/<id>-<topic>.md`: `<id>` is the ticket key or task id the brief serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
-3. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state. An older `briefs/<id>-<topic>.html` with the same name is the earlier revision: read it, carry its decided picks into the `.md`, and delete the `.html` once the `.md` is written.
-4. **Write the brief** (contract below) and **return its absolute path**. When it replaced an `.html`, also name that old path, so the caller repoints anything that cites it. Do not edit the tracker: the bridge, Queue line or open decision that needs the brief cites the path itself.
+2. **Pick the format**, `md` or `html`; the first match wins:
+   1. The prompt explicitly asks for a format (markdown or md; HTML or a page) → that format.
+   2. Revising an existing brief (same `<id>-<topic>`, either extension) → keep its format.
+   3. Repo config `brief_format` (read as in Start step 3, the local file overriding) is `md` or `html` → that format. `auto` or unset falls through.
+   4. The session's context holds a line containing `project-workflow brief format: md` or `project-workflow brief format: html` → that format.
+   5. Otherwise markdown.
+3. **Name the file** `briefs/<id>-<topic>.md` or `briefs/<id>-<topic>.html` per the format: `<id>` is the ticket key or task id the brief serves (`gh-12`, `d2-b3`, `cb3`), `<topic>` 2–6 kebab-case words; both lower-case. Create `briefs/` if missing.
+4. **Existing file → revise in place.** Read it first; carry forward every decided pick (with its date and who decided) and drop superseded content. Never write `-v2` copies — the folder holds only the latest state. A revision keeps the existing format unless the prompt explicitly asks to switch. On a switch, read the old file, carry every decided pick into the new-format file, and delete the old file once the new one is written. Never keep both extensions of one brief.
+5. **Write the brief** (contract and format rules below) and **return its absolute path**. After a format switch, also name the old path, so the caller repoints anything that cites it. Do not edit the tracker: the bridge, Queue line or open decision that needs the brief cites the path itself.
 
 ## Brief contract
 
@@ -26,7 +32,7 @@ description: Use when the user or an agent wants a decision brief for the projec
 - **One line per item.** Options, findings and steps are list items or table rows, one line each; depth links to `docs/` notes or code paths instead of growing paragraphs.
 - **Latest state only.** No revision history, no "previously" sections.
 - **Decided picks stay visible.** A decided item shows `DECIDED <date> (<who>): <pick>` where it was asked, so a reader sees what is settled.
-- **Concrete artifacts beside options.** When comparing options, put a small artifact next to each — a code excerpt, an ASCII diagram in a `text` block, a before/after table.
+- **Concrete artifacts beside options.** When comparing options, put a small artifact next to each — a code excerpt, a diagram (ASCII in a `text` block in markdown; inline SVG or `<pre>` in HTML), a before/after table.
 
 ## Markdown rules
 
@@ -36,9 +42,16 @@ description: Use when the user or an agent wants a decision brief for the projec
 - Keep tables to a few narrow columns; move long cell content into list items.
 - Reads well as plain text and in a terminal markdown viewer (for example glow), which does not wrap code blocks.
 
+## HTML rules
+
+- One self-contained file: inline `<style>`, no `<script src>`, no web fonts, no remote images, no network fetches of any kind (pages are opened from disk, often offline). No Mermaid; draw diagrams as inline SVG or `<pre>` text.
+- Reads in light and dark: colors as CSS variables on `:root`, redefined under `@media (prefers-color-scheme: dark)`; explicit `body` background; system font stack.
+- `<title>` is the topic in plain words. A small meta line under the `<h1>`: project root, id, date written.
+- Readable at laptop width and on a phone: `max-width` on the main column, tables in an `overflow-x:auto` wrapper.
+
 ## Hard constraints
 
-- Writes only inside the resolved project's `briefs/`. The one removal allowed is the `.html` a revision replaces.
+- Writes only inside the resolved project's `briefs/`. The one removal allowed is the old file a format switch replaces.
 - Never commits the brief and never copies it into a repo.
 
 ## Learnings
