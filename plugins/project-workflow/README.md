@@ -11,13 +11,17 @@ work, and four skills keep it honest against your ticket tracker.
 | `/pw-open <root> [<short-name>] [<ticket>…]` | Creates the project folder from the templates and seeds its queue. Read-only on tickets. |
 | `/pw-status <project> [sweep]` | Reconciles the tracker file against live tickets, PRs and worktrees and renders a plain-English board. `sweep` also fixes drift. |
 | `/pw-land <project> <task-id>` | Lands a merged deliverable: flips its row, walks its ticket, cleans up its worktree. `/pw-land <project> close` closes and archives the project. |
-| `/pw-brief <project> <id> <topic>` | Writes a markdown decision brief for the project owner that reads in the terminal. |
+| `/pw-brief <project> <id> <topic>` | Writes a decision brief for the project owner: markdown that reads in the terminal, or a self-contained HTML page outside one. Asking for a format wins. |
 
 The rules every thread follows are in [`docs/project-workflow.md`](docs/project-workflow.md). Nothing injects
 them into a session: each skill reads them when it starts, and every tracker file's header carries their path.
 
 **Optional, Claude Code only:** the [`pw-board` mod](mod/) shows a project's tracker beside the chat as a board,
 with a one-line summary above the prompt and a card under each brief. The skills work without it.
+
+**Optional, Claude Code only:** the plugin's session-start hook tells `/pw-brief` whether the session is a terminal
+one: markdown in a terminal or tmux, HTML in the desktop app, IDE or web. Without it `/pw-brief` uses
+`brief_format` from the repo config (`auto|md|html`, see [`docs/config.md`](docs/config.md)), else markdown.
 
 ## Using it day to day
 
